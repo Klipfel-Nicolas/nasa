@@ -1,6 +1,6 @@
 <template>
     <div id="rover">
-        <h1>Spirit</h1>
+      
         
         <div id="spiritContainer">
 
@@ -30,13 +30,12 @@ export default {
             photos: null,
             camera: null,
             scene: null,
+            controls: null,
+            raycaster: new THREE.Raycaster(),
+            mouse: new THREE.Vector2(),
             renderer: null,
             spirit: null,
-            raycaster: null,
-            currentIntersect: null,
-            mouse: null,
             clock: new THREE.Clock(),
-            moduleArray: []
         }
     },
 
@@ -47,149 +46,228 @@ export default {
             /**
              * Loaders
              */
-            let gltfLoader = new GLTFLoader();
-
-            /**
-             * Debug
-             */
-            const gui = new dat.GUI()
-            const debugObject = {}
+            const gltfLoader = new GLTFLoader();
             
             /**
              * Base
              */
             
             // Canvas
-            const container = document.getElementById('spiritContainer');
+            const canvas = document.getElementById('spiritContainer');
+
+            // Sizes
+            const sizes = {
+                width: window.innerWidth,
+                height: window.innerHeight
+            }
             
             // Camera
-            this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 200 );
-            this.camera.position.set( -10, 0, 0);
+            this.camera = new THREE.PerspectiveCamera( 45, sizes.width / sizes.height, 1, 200 );
+            this.camera.position.set( 0, 4, -10);
             
             // Scene
             this.scene = new THREE.Scene();
-
-            
-            /**
-             * Raycaster
-             */
-            this.raycaster = new THREE.Raycaster();
+            this.scene.fog = new THREE.Fog( '#000000', 10, 15 );
 
             /**
-             * Mouse
+             * Debug
              */
-            this.mouse = new THREE.Vector2();
-
-            // Debug
             /* const axesHelper = new THREE.AxesHelper( 5 );
-            this.scene.add( axesHelper );*/
-            const gui = new dat.GUI() 
+            this.scene.add( axesHelper ); */
+            const gui = new dat.GUI()
+            const debugObject = {}
 
-            // LIGHTS
-            const ambientLight = new THREE.AmbientLight(0xf1f1f1, .6)
+            /**
+             * Update all materials
+             */
+            const updateAllMaterials = () => {
+                this.scene.traverse((child) =>{
+                    if(child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial){
+                        child.material.envMapIntensity = debugObject.envMapIntensity
+                        child.material.needsUpdate = true
+                        
+                        child.castShadow = true
+                        child.receiveShadow = true
+                    }
+
+                    if(child instanceof THREE.Group){
+                        console.log(child);
+                        let name = document.createElement('div');
+                        name.textContent = child.name;
+                        
+                    }
+                })
+            }
+
+            debugObject.envMapIntensity = 5
+            gui.add(debugObject, 'envMapIntensity').min(0).max(10).step(0.001).onChange(updateAllMaterials)
+
+            /**
+             * Models
+             */
+            gltfLoader.setPath( './3DObjects/mars-perseverance-rover/source/' ).load( 'Perseverance.glb', (object) => {
+                
+                this.spirit = object.scene
+                this.scene.add( this.spirit );
+                
+                this.spirit.rotation.y = Math.PI / 1.2
+
+                //Debug model
+                const modelFolder = gui.addFolder('Model');
+                modelFolder.add(this.spirit.position, 'x', -3, -3, .3).name('x')
+                modelFolder.add(this.spirit.position, 'z', -5, 5, .03).name('z')
+                modelFolder.add(this.spirit.position, 'y', -5, 5, .03).name('z')
+                modelFolder.add(this.spirit.rotation, 'y', -3, 3, .03).name('rotation-y')
+
+                updateAllMaterials()
+            })  
+
+            /**
+             * Floor
+             */
+            const floor = new THREE.Mesh(
+                new THREE.PlaneGeometry(30, 30),
+                new THREE.MeshStandardMaterial({
+                    color: '#060606',
+                    metalness: 0.9,
+                    roughness: 1,
+                })
+            )
+            floor.receiveShadow = true
+            floor.rotation.x = - Math.PI * 0.5
+            this.scene.add(floor)
+
+            /**
+             * Light
+             */
+
+            // AmbientLight
+            const ambientLight = new THREE.AmbientLight(0xf1f1f1, .2)
             this.scene.add(ambientLight)
 
+            const lightFolder = gui.addFolder('Light');
+            lightFolder.add(ambientLight, 'intensity').min(0).max(5).step(0.001).name('Ambient-Intensity')
 
             //Directionnal Light
-            const directionalLight = new THREE.DirectionalLight(0xffffff, .8)
-            directionalLight.position.set(0, 3, 0)
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 4.5)
+            directionalLight.position.set(2.5, 2.5, 0)
+            directionalLight.castShadow = true
+            directionalLight.shadow.mapSize.set(1024 * 2, 1024 * 2 )
+            directionalLight.shadow.camera.far = 5
+            directionalLight.shadow.camera.left = - 3
+            directionalLight.shadow.camera.top = 3
+            directionalLight.shadow.camera.right = 3
+            directionalLight.shadow.camera.bottom = - 3
+            directionalLight.shadow.normalBias = .02
             this.scene.add(directionalLight)
 
-            gui.add(directionalLight, 'intensity').min(0).max(1).step(0.001)
-            gui.add(directionalLight.position, 'x').min(- 15).max(15).step(0.001)
-            gui.add(directionalLight.position, 'y').min(- 15).max(15).step(0.001)
-            gui.add(directionalLight.position, 'z').min(- 15).max(15).step(0.001)
-    
+            /* const helper = new THREE.DirectionalLightHelper( directionalLight);
+            this.scene.add(helper)  */
+            lightFolder.add(directionalLight, 'intensity').min(0).max(5).step(0.001).name('direction-intensity')
+            lightFolder.add(directionalLight.position, 'x').min(- 5).max(5).step(0.001).name('direction-X')
+            lightFolder.add(directionalLight.position, 'y').min(- 5).max(5).step(0.001).name('direction-Y')
+            lightFolder.add(directionalLight.position, 'z').min(- 5).max(5).step(0.001).name('direction-Z')
 
+            // Point Light
+            const pointLight = new THREE.PointLight(0xffffff, 3.6)
+            pointLight.position.x = -2
+            pointLight.position.y = 1
+            pointLight.position.z = -1.3
+
+            this.scene.add(pointLight)
+            
+            /* const pointhelper = new THREE.PointLightHelper( pointLight);
+            this.scene.add(pointhelper) */
+            lightFolder.add(pointLight, 'intensity').min(0).max(5).step(0.001).name('point-intensity')
+            lightFolder.add(pointLight.position, 'x').min(- 5).max(5).step(0.001).name('point-X')
+            lightFolder.add(pointLight.position, 'y').min(- 5).max(5).step(0.001).name('point-Y')
+            lightFolder.add(pointLight.position, 'z').min(- 5).max(5).step(0.001).name('point-Z')
+    
             /**
              * RENDERER
              */
-            this.renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
-            this.renderer.setPixelRatio( window.devicePixelRatio );
-            this.renderer.setSize( window.innerWidth, window.innerHeight);
-            container.appendChild( this.renderer.domElement );
-            this.renderer.shadowMap.enabled = false
-            this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
+            this.renderer = new THREE.WebGLRenderer({
+                antialias: true,
+                alpha: true
+            });
+            this.renderer.physicallyCorrectLights = true
+            canvas.appendChild( this.renderer.domElement );
+            this.renderer.setSize( sizes.width, sizes.height);
+            this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             this.renderer.outputEncoding = THREE.sRGBEncoding
+            this.renderer.toneMapping = THREE.ACESFilmicToneMapping
+            this.renderer.toneMappingExposure = 3
+            this.renderer.shadowMap.enabled = true
+            this.renderer.shadowMap.type = THREE.PCFShadowMap
 
+            //Debug
+            gui
+                .add(this.renderer, 'toneMapping', {
+                    No: THREE.NoToneMapping,
+                    Linear: THREE.LinearToneMapping,
+                    Reinhard: THREE.ReinhardToneMapping,
+                    Cineon: THREE.CineonToneMapping,
+                    ACESFilmic: THREE.ACESFilmicToneMapping
+                })
+                .onFinishChange(() =>{
+                    this.renderer.toneMapping = Number(this.renderer.toneMapping)
+                    updateAllMaterials()
+                })
 
-            gltfLoader.setPath( './3DObjects/mars-perseverance-rover/source/' ).load( 'Perseverance.glb', (object) => {
-                this.spirit = object.scene
-                this.scene.add( this.spirit );
+            gui.add(this.renderer, 'toneMappingExposure').min(0).max(10).step(.001)
 
-                this.spirit.children.forEach(element => {
-                    if(element.type == "Group"){
-                        this.moduleArray.push(element)
-                    }
-                });
+            /**
+             * Orbit Controls
+             */
+            this.controls = new OrbitControls( this.camera, this.renderer.domElement);
+            this.controls.enableDamping = true
+            this.controls.zoomSpeed = 2;
+            this.controls.minDistance = 3;
+            this.controls.maxDistance = 15;
 
-                // LISTENER MOVE
-                /* window.addEventListener('mousemove', (e) => {
-  
-                    this.mouse.x = e.clientX / window.innerWidth * 2 -1
-                    this.mouse.y = -(e.clientY / window.innerHeight * 2 - 1)
-                    
-                    this.raycaster.setFromCamera(this.mouse, this.camera)
-                    
-                     let arrayObject = this.scene.children;
-                    arrayObject.forEach(element => {
-                        console.log(Object.getPrototypeOf(element));
-                    }); 
-                    console.log(arrayObject); 
-                    const modelArray = object.scene.children;
+            /**
+             * Resizes
+             */
+            window.addEventListener('resize', () =>
+            {
+                // Update sizes
+                sizes.width = window.innerWidth
+                sizes.height = window.innerHeight
 
-                    for (const object of modelArray) {
-                        if(object.type == "Group"){
-                            console.log('yes');
-                        }
-                    }
-                    
-                    let intersects = this.raycaster.intersectObject(this.scene.children[4], true)
+                // Update camera
+                this.camera.aspect = sizes.width / sizes.height
+                this.camera.updateProjectionMatrix()
 
-                    if(intersects.length > 0 && intersects[0].object){
-                    console.log(intersects[0].object.parent.name); 
-                    }
-                });  */
-                
+                // Update renderer
+                this.renderer.setSize(sizes.width, sizes.height)
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
             })
 
+            /**
+             * onClick Areas
+             */
 
-            // LISTENER MOVE
-            window.addEventListener('mousemove', (e) => {
+            window.addEventListener('click', (e) => {
+  
                 this.mouse.x = e.clientX / window.innerWidth * 2 -1
                 this.mouse.y = -(e.clientY / window.innerHeight * 2 - 1)
-            })
-            
-            
-            const controls = new OrbitControls( this.camera, this.renderer.domElement );
-            controls.minDistance = 3;
-            controls.maxDistance = 20;
+                
+                this.raycaster.setFromCamera(this.mouse, this.camera)
+                
+                let intersects = this.raycaster.intersectObjects(this.scene.children, true)
+                /* console.log('intersect: ', intersects[0]);  */
+                if(intersects.length > 0){
+                    console.log(intersects[0].object.parent.name)
+                }
+            }); 
 
         },
 
         animate: function(){
-            
-
-            /* const elapsed = this.clock.getElapsedTime(); */
-            
-            /**
-             * raycaster
-             */
-            if(this.spirit) {
-                this.raycaster.setFromCamera(this.mouse, this.camera)
-
-                
-                const intersects = this.raycaster.intersectObjects(this.moduleArray)
-
-                 for (const intersect of intersects) {
-                    console.log(intersect);
-                }
-            }
-            
             requestAnimationFrame( this.animate );
-
+            this.controls.update()
             this.renderer.render( this.scene, this.camera );
-        }, 
+        },
     },
 
     mounted() {
@@ -205,8 +283,9 @@ export default {
 
 <style lang="css" scoped>
     #rover{
-    background: #000000;  /* fallback for old browsers */
-    background: -webkit-linear-gradient(to right, #434343, #000000);  /* Chrome 10-25, Safari 5.1-6 */
-    background: linear-gradient(to right, #434343, #000000); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
-}
+    background: #000000;  
+   /*  background: -webkit-linear-gradient(to right, #434343, #000000); 
+    background: linear-gradient(to right, #434343, #000000);  */
+   /*  background: #f1f1f1;*/
+    }
 </style>
