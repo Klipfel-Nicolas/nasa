@@ -1,12 +1,44 @@
 <template>
     <div id="rover">
-      
-        
-        <div id="spiritContainer">
+           
+        <div class="htmlContainer">
+            <!-- Left Column -->
+            <div class="leftColumn">
+                <div
+                    @click="toggleDysplay"
+                    class="button"
+                >
+                    ON/OFF
+                </div>
 
+                <ul>
+                    <li 
+                        v-for="(element, index) in elements"
+                        :key="index"
+                        class="perserveranceElement list"
+                        @click="onListClick(element)"
+                    >
+                        {{element.name}}
+                    </li>
+                </ul>
+            </div>
+
+             <!-- center Column -->
+            <div class="centerColumn">
+                <p class="elementDescription">
+                    {{description}}
+                </p>
+            </div>
+
+             <!-- Right Column -->
+            <div class="centerColumn">
+
+            </div>
+
+            
         </div>
-
-        
+           
+        <div id="spiritContainer"></div> 
     </div>
 </template>
 
@@ -15,7 +47,11 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'
+import { elementsPerseverance } from '../assets/js/perseveranceDatas'
+import { gsap } from "gsap";
 import * as dat from 'dat.gui';
+
   
 export default {
     
@@ -27,6 +63,7 @@ export default {
             launchDate: '',
             landingDate: '',
             endMission: '',
+            elements: elementsPerseverance,
             photos: null,
             camera: null,
             scene: null,
@@ -36,6 +73,8 @@ export default {
             renderer: null,
             spirit: null,
             clock: new THREE.Clock(),
+            css3Renderer: null,
+            description: '',
         }
     },
 
@@ -51,8 +90,6 @@ export default {
             /**
              * Base
              */
-            
-            // Canvas
             const canvas = document.getElementById('spiritContainer');
 
             // Sizes
@@ -62,7 +99,7 @@ export default {
             }
             
             // Camera
-            this.camera = new THREE.PerspectiveCamera( 45, sizes.width / sizes.height, 1, 200 );
+            this.camera = new THREE.PerspectiveCamera( 45, sizes.width / sizes.height, 1, 200 ); 
             this.camera.position.set( 0, 4, -10);
             
             // Scene
@@ -76,6 +113,7 @@ export default {
             this.scene.add( axesHelper ); */
             const gui = new dat.GUI()
             const debugObject = {}
+            
 
             /**
              * Update all materials
@@ -83,23 +121,36 @@ export default {
             const updateAllMaterials = () => {
                 this.scene.traverse((child) =>{
                     if(child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial){
+                        
                         child.material.envMapIntensity = debugObject.envMapIntensity
                         child.material.needsUpdate = true
-                        
+                
                         child.castShadow = true
                         child.receiveShadow = true
-                    }
-
-                    if(child instanceof THREE.Group){
-                        console.log(child);
-                        let name = document.createElement('div');
-                        name.textContent = child.name;
+                        if(child.name.includes('arm')){
+                            console.log(child);
+                        }
                         
                     }
                 })
             }
 
-            debugObject.envMapIntensity = 5
+
+            /**
+             * Environment map
+             */
+            const cubeTextureLoader = new THREE.CubeTextureLoader()
+            const environmentMap = cubeTextureLoader.load([
+                '/textures/environmentMaps/1/px.jpg',
+                '/textures/environmentMaps/1/nx.jpg',
+                '/textures/environmentMaps/1/py.jpg',
+                '/textures/environmentMaps/1/ny.jpg',
+                '/textures/environmentMaps/1/pz.jpg',
+                '/textures/environmentMaps/1/nz.jpg'
+            ])
+            environmentMap.encoding = THREE.sRGBEncoding
+            this.scene.environment = environmentMap
+            debugObject.envMapIntensity = .7
             gui.add(debugObject, 'envMapIntensity').min(0).max(10).step(0.001).onChange(updateAllMaterials)
 
             /**
@@ -114,14 +165,47 @@ export default {
 
                 //Debug model
                 const modelFolder = gui.addFolder('Model');
-                modelFolder.add(this.spirit.position, 'x', -3, -3, .3).name('x')
+                modelFolder.add(this.spirit.position, 'x', -3, 3, .3).name('x')
                 modelFolder.add(this.spirit.position, 'z', -5, 5, .03).name('z')
                 modelFolder.add(this.spirit.position, 'y', -5, 5, .03).name('z')
                 modelFolder.add(this.spirit.rotation, 'y', -3, 3, .03).name('rotation-y')
 
-                updateAllMaterials()
-            })  
+                //Materials Update
+                this.spirit.traverse(child =>{
+                    if(child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial && child.name.includes('E-HORIZONTAL_SWINGARM') ){
+                        child.material.roughness = 0;
+                        child.material.metalness = .8;
+                    }
+                })
+                   
+                   
+                //Elements number 
+                for (let i = 0; i < elementsPerseverance.length; i++) {
+                    let element = document.createElement('div');
+                    element.className = 'perserveranceElement';
+                    
+                    let number = document.createElement('div');
+                    number.className = 'elementNumber';
+                    number.textContent = i+1;
 
+                    let name = document.createElement('div');
+                    name.className = 'elementName';
+                    name.textContent = elementsPerseverance[i].name;
+
+                    element.appendChild(number);
+                    element.appendChild(name);
+                    const marker = new CSS2DObject(element);
+                    marker.position.x = elementsPerseverance[i].positions.x;
+                    marker.position.y = elementsPerseverance[i].positions.y;
+                    marker.position.z = elementsPerseverance[i].positions.z;
+                    this.spirit.add(marker);
+
+                }
+
+                updateAllMaterials()
+            })
+             
+            
             /**
              * Floor
              */
@@ -149,7 +233,7 @@ export default {
             lightFolder.add(ambientLight, 'intensity').min(0).max(5).step(0.001).name('Ambient-Intensity')
 
             //Directionnal Light
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 4.5)
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 3.1)
             directionalLight.position.set(2.5, 2.5, 0)
             directionalLight.castShadow = true
             directionalLight.shadow.mapSize.set(1024 * 2, 1024 * 2 )
@@ -169,7 +253,7 @@ export default {
             lightFolder.add(directionalLight.position, 'z').min(- 5).max(5).step(0.001).name('direction-Z')
 
             // Point Light
-            const pointLight = new THREE.PointLight(0xffffff, 3.6)
+            const pointLight = new THREE.PointLight(0xffffff, .9)
             pointLight.position.x = -2
             pointLight.position.y = 1
             pointLight.position.z = -1.3
@@ -200,6 +284,12 @@ export default {
             this.renderer.shadowMap.enabled = true
             this.renderer.shadowMap.type = THREE.PCFShadowMap
 
+            this.css3Renderer = new CSS2DRenderer();
+            this.css3Renderer.setSize( sizes.width, sizes.height);
+            this.css3Renderer.domElement.style.position = 'absolute';
+            this.css3Renderer.domElement.style.top = '0px';
+            canvas.appendChild( this.css3Renderer.domElement);
+
             //Debug
             gui
                 .add(this.renderer, 'toneMapping', {
@@ -219,7 +309,7 @@ export default {
             /**
              * Orbit Controls
              */
-            this.controls = new OrbitControls( this.camera, this.renderer.domElement);
+            this.controls = new OrbitControls( this.camera, this.css3Renderer.domElement);
             this.controls.enableDamping = true
             this.controls.zoomSpeed = 2;
             this.controls.minDistance = 3;
@@ -241,25 +331,9 @@ export default {
                 // Update renderer
                 this.renderer.setSize(sizes.width, sizes.height)
                 this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+                this.css3Renderer.setSize( window.innerWidth, window.innerHeight );
             })
-
-            /**
-             * onClick Areas
-             */
-
-            window.addEventListener('click', (e) => {
-  
-                this.mouse.x = e.clientX / window.innerWidth * 2 -1
-                this.mouse.y = -(e.clientY / window.innerHeight * 2 - 1)
-                
-                this.raycaster.setFromCamera(this.mouse, this.camera)
-                
-                let intersects = this.raycaster.intersectObjects(this.scene.children, true)
-                /* console.log('intersect: ', intersects[0]);  */
-                if(intersects.length > 0){
-                    console.log(intersects[0].object.parent.name)
-                }
-            }); 
 
         },
 
@@ -267,7 +341,33 @@ export default {
             requestAnimationFrame( this.animate );
             this.controls.update()
             this.renderer.render( this.scene, this.camera );
+            this.css3Renderer.render( this.scene, this.camera );
+            
         },
+
+        toggleDysplay(){
+            document.querySelectorAll('.perserveranceElement').forEach(element => {
+                element.classList.toggle('display');
+            })
+        },
+
+        onListClick(element){
+            this.description = element.description;
+            /* console.log(this.controls.object); */
+            gsap.to( this.camera, {
+                duration: 2,
+                zoom: 2,
+                onUpdate:this.camera.updateProjectionMatrix()
+            } );
+
+            /* gsap.to( this.controls.target, {
+                duration: 2,
+                x: 3.1012971484460357,
+                y:0.70160311460495,
+                z:-1.392815717858431,
+                onUpdate: this.controls.update()
+            }) */
+        } 
     },
 
     mounted() {
@@ -275,8 +375,8 @@ export default {
         this.animate();
     },
 
-    async created() {
-
+    created() {
+        
     }
 }
 </script>
@@ -284,8 +384,41 @@ export default {
 <style lang="css" scoped>
     #rover{
     background: #000000;  
-   /*  background: -webkit-linear-gradient(to right, #434343, #000000); 
-    background: linear-gradient(to right, #434343, #000000);  */
-   /*  background: #f1f1f1;*/
+    }
+    .htmlContainer{
+        display: flex;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        position: absolute;
+    }
+    .leftColumn{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .button {
+        z-index: 100;
+        position: relative;
+        cursor: pointer;
+        color: #f1f1f1;
+    }
+    .perserveranceElement.list{
+        color: rgb(246, 141, 67);
+        z-index: 100;
+        position: relative;
+        cursor: pointer;
+    }
+    /* CENTER */
+    .centerColumn{
+        display: flex;
+        align-items: flex-end;
+    }
+    .elementDescription{
+        margin-bottom: 50px;
+        color: #f1f1f1;
+        border: 1px solid #f1f1f1;
+        background: rgba(0, 0, 0, .5);
     }
 </style>

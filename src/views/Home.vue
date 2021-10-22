@@ -3,7 +3,7 @@
         
         <astronaute-css/>
 
-        <div class="index">
+        <div class="home index">
             
             <div class="header">
                 <div>
@@ -210,7 +210,7 @@
                     <img src="/images/signes.png" alt="signes">
                 </div>
 
-                <ul>
+                <ul class="details">
                     <li>size : 6792km</li>
                     <li>From sun : 78-378 millions Km</li>
                     <li>From earth : 150 millions km</li>
@@ -531,43 +531,7 @@ export default {
 
 
 <style>
-:root {
-    --orbiton-font: 'Orbitron';
-    --normal-font: 'Rajdhani';
-    --orangeD: #FF873FFF;
-    --orangeL: #FFB285FF;
-    --blue: rgb(102, 250, 211);
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    list-style: none;
-    font-size: 14px;
-}
-
-.index {
-    position: absolute;
-    height: 100vh;
-    width: 100vw;
-}
-
-.index .header {
-    display: flex;
-    align-items: center;
-    padding-left: 5%;
-    width: 70vw;
-}
-
-.index h1 {
-    position: relative;
-    padding: 10px;
-    font-family: var(--orbiton-font);
-    opacity: .8;
-}
-
-.index h1:after {
+.home.index h1:after {
     position: absolute;
     content: '';
     top: 50%;
@@ -589,17 +553,6 @@ export default {
     color: #1155e7;
 }
 
-.index .right-column {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: flex-end;
-    height: 100vh;
-    right: 5%;
-    bottom: 0%;
-    padding: 10px;
-}
 
 .right-column .signes {
     text-align: end;
@@ -655,22 +608,7 @@ export default {
     margin-right: 10px;
 }
 
-.index li {
-    font-family: var(--orbiton-font);
-    color: #ffff;
-    font-size: .7rem;
-    letter-spacing: .1rem;
-    padding: 5px;
-}
-
-.index .size {
-    position: absolute;
-    width: 500px;
-    bottom: 10px;
-    left: 5%;
-}
-
-.index .size img {
+.home.index .size img {
     width: 100%;
 }
 
