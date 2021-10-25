@@ -4,7 +4,7 @@
   </div>
 </template>
 
-<style>
+<style lang="scss" >
 :root {
     --orbiton-font: 'Orbitron';
     --normal-font: 'Rajdhani';
@@ -40,7 +40,8 @@ a{
     letter-spacing: .1rem;
     padding: 5px;
 }
-/* DISPLAY HOME, PERSEVERANCE */
+
+    /* DISPLAY HOME, PERSEVERANCE */
 .index {
     position: absolute;
     height: 100vh;
@@ -79,7 +80,25 @@ a{
     bottom: 10px;
     left: 5%;
 }
-/* PERSEVERANCE PAGE */
+
+/* linkedin link*/
+.linkedLink a{
+    position: relative;
+    display: block;
+    color: #fff;
+    z-index: 6000;
+    cursor: pointer;
+    transition: all .3s ease;
+}
+
+.linkedLink a:hover {
+  color: var(--orangeL);
+  text-decoration: none;
+  transform: scale(.9);
+}
+
+
+/* PERSEVERANCE PAGE (ELEMEMENT THREE)*/
 
 .perserveranceElement{
   display: flex;
@@ -89,6 +108,7 @@ a{
   justify-content: center;
   align-items: center;
   opacity: 0;
+  transition: opacity .3s ease-in;
 }
 
 .perserveranceElement.display{
@@ -103,9 +123,9 @@ a{
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(246, 141, 67, .5);
+  border: 1px solid rgba(255, 255, 255, .8);
   background: rgba(0, 0, 0, .8);
-  color: rgb(246, 141, 67);
+  color: rgba(255, 255, 255, .8);
   width:20px;
   height: 20px;
   border-radius: 100%;
@@ -116,5 +136,4 @@ a{
   opacity: 0;
   color: rgb(246, 141, 67);
 }
-
 </style>

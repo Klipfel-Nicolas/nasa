@@ -118,6 +118,13 @@
             </div>
             
         </div>
+
+        <div class='list'>
+            <div class="point point-0">
+                <div class="label">1</div>
+                <div class="text">Lorem, ipsum dolor sit amet consectetur adipisicing elit.</div>
+            </div>
+        </div>
            
         <div id="spiritContainer"></div> 
     </div>
@@ -128,7 +135,7 @@ import Navigation from '../components/Navigation.vue';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'
+import { CSS2DRenderer/* , CSS2DObject */ } from 'three/examples/jsm/renderers/CSS2DRenderer'
 import { elementsPerseverance } from '../assets/js/perseveranceDatas'
 /* import { gsap } from "gsap"; */
 import * as dat from 'dat.gui';
@@ -158,8 +165,15 @@ export default {
             renderer: null,
             spirit: null,
             clock: new THREE.Clock(),
-            css3Renderer: null,
+            css2Renderer: null,
             stats: new Stats(),
+            raycaster: new THREE.Raycaster(),
+            points: [
+                {
+                    position: new THREE.Vector3(-0.07, 0.7, -0.9),
+                    element: document.querySelector('.point-0')
+                }
+            ]
         }
     },
 
@@ -172,7 +186,7 @@ export default {
              */
             const gltfLoader = new GLTFLoader();
            /* const loadingManager = new THREE.LoadingManager()
-             const texturesLoader = new THREE.TextureLoader(loadingManager) */
+             const texturesLoader = new THREE.TextureLoader(loadingManager)*/
 
             /**
              * Base
@@ -217,25 +231,6 @@ export default {
                 })
             }
 
-
-            /**
-             * Environment map
-             */
-            /* const cubeTextureLoader = new THREE.CubeTextureLoader()
-            const environmentMap = cubeTextureLoader.load([
-                '/textures/environmentMaps/1/px.jpg',
-                '/textures/environmentMaps/1/nx.jpg',
-                '/textures/environmentMaps/1/py.jpg',
-                '/textures/environmentMaps/1/ny.jpg',
-                '/textures/environmentMaps/1/pz.jpg',
-                '/textures/environmentMaps/1/nz.jpg'
-            ]) 
-            environmentMap.encoding = THREE.sRGBEncoding
-            this.scene.environment = environmentMap
-            debugObject.envMapIntensity = .4
-            gui.add(debugObject, 'envMapIntensity').min(0).max(10).step(0.001).onChange(updateAllMaterials)  */
-
-            
              /**
              * Models
              */
@@ -263,10 +258,10 @@ export default {
                     }
         
                 })
-                   
+                
                    
                 //Elements number 
-                for (let i = 0; i < elementsPerseverance.length; i++) {
+                /* for (let i = 0; i < elementsPerseverance.length; i++) {
                     let element = document.createElement('div');
                     element.className = `perserveranceElement threeElement `;
                     
@@ -286,10 +281,19 @@ export default {
                     marker.position.z = elementsPerseverance[i].positions.z;
                     this.spirit.add(marker);
 
-                }
+                } */
 
                 updateAllMaterials()
             })
+
+            /**
+             * Points
+             */
+            for(const point of this.points){
+                point.element = document.querySelector('.point-0');
+
+
+            }
             
             /**
              * Floor
@@ -363,12 +367,12 @@ export default {
             
             
 
-            this.css3Renderer = new CSS2DRenderer();
-            this.css3Renderer.setSize( sizes.width, sizes.height);
-            this.css3Renderer.domElement.style.position = 'absolute';
-            this.css3Renderer.domElement.style.top = '0px';
-            canvas.appendChild( this.css3Renderer.domElement);
-
+            this.css2Renderer = new CSS2DRenderer();
+            this.css2Renderer.setSize( sizes.width, sizes.height);
+            this.css2Renderer.domElement.style.position = 'absolute';
+            this.css2Renderer.domElement.style.top = '0px';
+            canvas.appendChild( this.css2Renderer.domElement);
+ 
             //Debug
             gui
                 .add(this.renderer, 'toneMapping', {
@@ -388,7 +392,7 @@ export default {
             /**
              * Orbit Controls
              */
-            this.controls = new OrbitControls( this.camera, this.css3Renderer.domElement);
+            this.controls = new OrbitControls( this.camera, this.css2Renderer.domElement);
             this.controls.enableDamping = true
             this.controls.zoomSpeed = 2;
             this.controls.minDistance = 3;
@@ -411,7 +415,7 @@ export default {
                 this.renderer.setSize(sizes.width, sizes.height)
                 this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
-                this.css3Renderer.setSize( window.innerWidth, window.innerHeight );
+                this.css2Renderer.setSize( window.innerWidth, window.innerHeight );
             })
 
         },
@@ -422,8 +426,37 @@ export default {
             requestAnimationFrame( this.animate );
             this.controls.update()
             this.renderer.render( this.scene, this.camera );
-            this.css3Renderer.render( this.scene, this.camera );
-            this.stats.end();
+            this.css2Renderer.render( this.scene, this.camera );
+
+            /* for(const point of this.points){
+     
+           const screenPosition = point.position.clone()
+            screenPosition.project(this.camera)
+
+            this.raycaster.setFromCamera(screenPosition, this.camera)
+            const intersects = this.raycaster.intersectObjects(this.scene.children, true)
+
+            if(intersects.length === 0){
+                point.element.classList.add('visible')
+            }else{
+                const intersectionDistance = intersects[0].distance
+                const pointDistance = point.position.distanceTo(this.camera.position)
+
+                //Si la distance entre la premiere intersections et la camera et plus petite que la distance entre le point et la camera
+                if(intersectionDistance < pointDistance){
+                    point.element.classList.remove('visible')
+                }else{
+                    point.element.classList.add('visible')
+                }
+            } 
+
+            const translateX = screenPosition.x * window.innerWidth * .5;
+            const translateY = screenPosition.y * window.innerHeight * .5;
+            point.element.style.transform = `translate(${translateX}px, ${-translateY}px)`
+            
+        } */
+            
+        this.stats.end();    
             
         },
 
@@ -455,7 +488,7 @@ export default {
     },
 
     created() {
-
+        
     }
 }
 </script>
@@ -581,5 +614,62 @@ export default {
 
     }
 }       
+
+.point{
+    position:absolute;
+    top: 50%;
+    left: 50%;
+}
+
+.point.visible .label{
+    transform: scale(1, 1);
+}
+
+.point:hover .text{
+    opacity: 1;
+}
+
+.point .label
+{
+    position: absolute;
+    top: -20px;
+    left: -20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #00000077;
+    border: 1px solid #ffffff77;
+    color: #ffffff;
+    font-family: Helvetica, Arial, sans-serif;
+    text-align: center;
+    line-height: 40px;
+    font-weight: 100;
+    font-size: 14px;
+    cursor: help;
+    transform: scale(0, 0);
+    transition: transform .3s;
+}
+
+.point .text
+{
+    position: absolute;
+    top: 30px;
+    left: -120px;
+    width: 200px;
+    padding: 20px;
+    border-radius: 4px;
+    background: #00000077;
+    border: 1px solid #ffffff77;
+    color: #ffffff;
+    line-height: 1.3em;
+    font-family: Helvetica, Arial, sans-serif;
+    text-align: center;
+    font-weight: 100;
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity .3s;
+    pointer-events: none;
+}
+
 
 </style>

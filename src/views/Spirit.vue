@@ -23,7 +23,7 @@
             <!-- right Column -->
             <div class="right-column">
                 <div class="linkedLink">
-                    <a href="https://www.linkedin.com/in/nicolas-klipfel-7871a21b3/">
+                    <!-- <a href="https://www.linkedin.com/in/nicolas-klipfel-7871a21b3/">
                         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" version="1.1" width="40" height="40" x="0" y="0" viewBox="0 0 378.845 378.845" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g>
                             <g xmlns="http://www.w3.org/2000/svg">
                                 <path d="M134.979,109.125c0.466,1.445,0.846,2.931,1.13,4.415c0.366,1.916,2.043,3.249,3.924,3.249c0.25,0,0.503-0.023,0.757-0.072   c2.17-0.415,3.592-2.511,3.177-4.681c-0.346-1.805-0.808-3.61-1.374-5.366c-0.677-2.102-2.928-3.259-5.034-2.579   C135.455,104.769,134.3,107.023,134.979,109.125z" fill="#ffffff" data-original="#000000" style="" class=""/>
@@ -64,14 +64,14 @@
                             </g>
                         </svg>
                         <p class="astroname">Nico</p>
-                    </a>
+                    </a> -->
                 </div>
                 
                 <div class="elementsList">
                     <div>
                         <div
                             @click="toggleDysplay"
-                            class="button"
+                            class="buttonList"
                         >
                             ON/OFF
                         </div>
@@ -84,7 +84,9 @@
                                 @click="onListClick(element)"
                             >
                                 <div class="perserveranceElement">
-                                    <p>
+                                    <p
+                                        :class="currentElement && currentElement.name === element.name ? 'active-color' : '' "
+                                    >
                                       {{element.name}}  
                                     </p>
                                 </div>
@@ -116,6 +118,17 @@
             </div>
             
         </div>
+
+        <ul class='list'>
+            <li
+                v-for="(point, index) in elements" :key="index"
+                class='point visible'
+                :id="'point-'+index"
+            >
+                <div class="label">{{index + 1}}</div>
+                <div class="text">{{point.name}}</div>
+            </li>
+        </ul>
            
         <div id="spiritContainer"></div> 
     </div>
@@ -126,10 +139,11 @@ import Navigation from '../components/Navigation.vue';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'
+import { CSS2DRenderer/* , CSS2DObject */ } from 'three/examples/jsm/renderers/CSS2DRenderer'
 import { elementsPerseverance } from '../assets/js/perseveranceDatas'
 /* import { gsap } from "gsap"; */
 import * as dat from 'dat.gui';
+import Stats from 'stats.js';
 
   
 export default {
@@ -155,7 +169,10 @@ export default {
             renderer: null,
             spirit: null,
             clock: new THREE.Clock(),
-            css3Renderer: null,  
+            css2Renderer: null,
+            stats: new Stats(),
+            raycaster: new THREE.Raycaster(),
+            points: [],
         }
     },
 
@@ -168,7 +185,7 @@ export default {
              */
             const gltfLoader = new GLTFLoader();
            /* const loadingManager = new THREE.LoadingManager()
-             const texturesLoader = new THREE.TextureLoader(loadingManager) */
+             const texturesLoader = new THREE.TextureLoader(loadingManager)*/
 
             /**
              * Base
@@ -194,49 +211,24 @@ export default {
              */
             /* const axesHelper = new THREE.AxesHelper( 5 );
             this.scene.add( axesHelper ); */
+            this.stats.showPanel(0);
+            document.body.appendChild( this.stats.dom );
             const gui = new dat.GUI()
             const debugObject = {}
-            
 
             /**
              * Update all materials
              */
             const updateAllMaterials = () => {
                 this.scene.traverse((child) =>{
-                    if(child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial){
-
+                    if(child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial){                  
                         child.material.envMapIntensity = debugObject.envMapIntensity
                         child.material.needsUpdate = true
-                
-                        child.castShadow = true
-                        child.receiveShadow = true
-                        if(child.name.includes('arm')){
-                            /* console.log(child); */
-                        }
                         
                     }
                 })
             }
 
-
-            /**
-             * Environment map
-             */
-            /*  const cubeTextureLoader = new THREE.CubeTextureLoader()
-            const environmentMap = cubeTextureLoader.load([
-                '/textures/environmentMaps/1/px.jpg',
-                '/textures/environmentMaps/1/nx.jpg',
-                '/textures/environmentMaps/1/py.jpg',
-                '/textures/environmentMaps/1/ny.jpg',
-                '/textures/environmentMaps/1/pz.jpg',
-                '/textures/environmentMaps/1/nz.jpg'
-            ]) 
-            environmentMap.encoding = THREE.sRGBEncoding
-            this.scene.environment = environmentMap
-            debugObject.envMapIntensity = .4
-            gui.add(debugObject, 'envMapIntensity').min(0).max(10).step(0.001).onChange(updateAllMaterials) */
-
-            
              /**
              * Models
              */
@@ -253,21 +245,21 @@ export default {
                 modelFolder.add(this.spirit.position, 'z', -5, 5, .03).name('z')
                 modelFolder.add(this.spirit.position, 'y', -5, 5, .03).name('z')
                 modelFolder.add(this.spirit.rotation, 'y', -3, 3, .03).name('rotation-y')
-
-                //Materials Update
+       
                 this.spirit.traverse(child =>{
-                    if(child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial && child.name.includes('E-HORIZONTAL_SWINGARM') ){
-                        
-                        child.material.roughness = 0;
-                        child.material.metalness = .8;
-                    }
+
+                     if( child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial){
+                        child.castShadow = true
+                        child.receiveShadow = true
+                    } 
+        
                 })
-                   
+                
                    
                 //Elements number 
-                for (let i = 0; i < elementsPerseverance.length; i++) {
+                /* for (let i = 0; i < elementsPerseverance.length; i++) {
                     let element = document.createElement('div');
-                    element.className = 'perserveranceElement';
+                    element.className = `perserveranceElement threeElement `;
                     
                     let number = document.createElement('div');
                     number.className = 'elementNumber';
@@ -285,10 +277,21 @@ export default {
                     marker.position.z = elementsPerseverance[i].positions.z;
                     this.spirit.add(marker);
 
-                }
+                } */
 
                 updateAllMaterials()
             })
+
+            /**
+             * Points
+             */
+            for (let i = 0; i < elementsPerseverance.length; i++) {
+                this.points.push({
+                    position: new THREE.Vector3(elementsPerseverance[i].positions.x, elementsPerseverance[i].positions.y, elementsPerseverance[i].positions.z),
+                    element: document.querySelector(`#point-${i}`),
+                })  
+            }
+            
             
             /**
              * Floor
@@ -302,6 +305,7 @@ export default {
                 })
             )
             floor.receiveShadow = true
+            floor.castShadow = false
             floor.rotation.x = - Math.PI * 0.5
             this.scene.add(floor)
 
@@ -310,7 +314,7 @@ export default {
              */
 
             // AmbientLight
-            const ambientLight = new THREE.AmbientLight(0xf1f1f1, .2)
+            const ambientLight = new THREE.AmbientLight(0xf1f1f1, .4)
             this.scene.add(ambientLight)
 
             const lightFolder = gui.addFolder('Light');
@@ -322,34 +326,23 @@ export default {
             directionalLight.castShadow = true
             directionalLight.shadow.mapSize.set(1024 * 2, 1024 * 2 )
             directionalLight.shadow.camera.far = 5
-            directionalLight.shadow.camera.left = - 3
-            directionalLight.shadow.camera.top = 3
-            directionalLight.shadow.camera.right = 3
-            directionalLight.shadow.camera.bottom = - 3
+            directionalLight.shadow.camera.left = - 2.5
+            directionalLight.shadow.camera.top = 2
+            directionalLight.shadow.camera.right = 2.5
+            directionalLight.shadow.camera.bottom = - 2
             directionalLight.shadow.normalBias = .02
             this.scene.add(directionalLight)
-
-            /* const helper = new THREE.DirectionalLightHelper( directionalLight);
-            this.scene.add(helper)  */
+            
+            /*Helper
+            const cameraHelper = new THREE.CameraHelper(directionalLight.shadow.camera);
+            this.scene.add(cameraHelper);
+            const helper = new THREE.DirectionalLightHelper( directionalLight);
+            this.scene.add(helper)
             lightFolder.add(directionalLight, 'intensity').min(0).max(5).step(0.001).name('direction-intensity')
             lightFolder.add(directionalLight.position, 'x').min(- 5).max(5).step(0.001).name('direction-X')
             lightFolder.add(directionalLight.position, 'y').min(- 5).max(5).step(0.001).name('direction-Y')
             lightFolder.add(directionalLight.position, 'z').min(- 5).max(5).step(0.001).name('direction-Z')
-
-            // Point Light
-            const pointLight = new THREE.PointLight(0xffffff, .9)
-            pointLight.position.x = -2
-            pointLight.position.y = 1
-            pointLight.position.z = -1.3
-
-            this.scene.add(pointLight)
-            
-            /* const pointhelper = new THREE.PointLightHelper( pointLight);
-            this.scene.add(pointhelper) */
-            lightFolder.add(pointLight, 'intensity').min(0).max(5).step(0.001).name('point-intensity')
-            lightFolder.add(pointLight.position, 'x').min(- 5).max(5).step(0.001).name('point-X')
-            lightFolder.add(pointLight.position, 'y').min(- 5).max(5).step(0.001).name('point-Y')
-            lightFolder.add(pointLight.position, 'z').min(- 5).max(5).step(0.001).name('point-Z')
+            */
     
             /**
              * RENDERER
@@ -367,13 +360,17 @@ export default {
             this.renderer.toneMappingExposure = 3
             this.renderer.shadowMap.enabled = true
             this.renderer.shadowMap.type = THREE.PCFShadowMap
+            this.renderer.shadowMap.needsUpdate = true
+           
+            
+            
 
-            this.css3Renderer = new CSS2DRenderer();
-            this.css3Renderer.setSize( sizes.width, sizes.height);
-            this.css3Renderer.domElement.style.position = 'absolute';
-            this.css3Renderer.domElement.style.top = '0px';
-            canvas.appendChild( this.css3Renderer.domElement);
-
+            this.css2Renderer = new CSS2DRenderer();
+            this.css2Renderer.setSize( sizes.width, sizes.height);
+            this.css2Renderer.domElement.style.position = 'absolute';
+            this.css2Renderer.domElement.style.top = '0px';
+            canvas.appendChild( this.css2Renderer.domElement);
+ 
             //Debug
             gui
                 .add(this.renderer, 'toneMapping', {
@@ -393,7 +390,7 @@ export default {
             /**
              * Orbit Controls
              */
-            this.controls = new OrbitControls( this.camera, this.css3Renderer.domElement);
+            this.controls = new OrbitControls( this.camera, this.css2Renderer.domElement);
             this.controls.enableDamping = true
             this.controls.zoomSpeed = 2;
             this.controls.minDistance = 3;
@@ -416,16 +413,31 @@ export default {
                 this.renderer.setSize(sizes.width, sizes.height)
                 this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
-                this.css3Renderer.setSize( window.innerWidth, window.innerHeight );
+                this.css2Renderer.setSize( window.innerWidth, window.innerHeight );
             })
 
         },
 
         animate: function(){
+            this.stats.begin();
+            this.renderer.shadowMap.needsUpdate = false
             requestAnimationFrame( this.animate );
             this.controls.update()
             this.renderer.render( this.scene, this.camera );
-            this.css3Renderer.render( this.scene, this.camera );
+            this.css2Renderer.render( this.scene, this.camera );
+
+    
+
+            this.points.forEach(point => {
+                const screenPosition = point.position.clone()
+               
+                screenPosition.project(this.camera)
+                const translateX = screenPosition.x * window.innerWidth * .5;
+                const translateY = screenPosition.y * window.innerHeight * .5;
+                point.element.style.transform = `translate(${translateX}px, ${-translateY}px)`
+            })
+            
+        this.stats.end();    
             
         },
 
@@ -448,7 +460,7 @@ export default {
             }else{
                this.currentElement = element; 
             }
-        } 
+        },
     },
 
     mounted() {
@@ -462,118 +474,174 @@ export default {
 }
 </script>
 
-<style lang="css" scoped>
-    #rover{
+<style lang="scss" scoped>
+    
+#rover{
     background: #000000;  
-    }
-    /* HEADER */
-    .htmlContainer h1{
-        font-size: 3rem;
-        color: #ffffff;
-    }
-    /* Right Column */
-    .linkedLink a{
-        position: relative;
-        display: block;
-        color: #fff;
-        z-index: 6000;
-        cursor: pointer;
-        transition: all .3s ease;
-    }
 
-    .linkedLink a:hover {
-    color: var(--orangeL);
-    text-decoration: none;
-    transform: scale(.9);
+    .htmlContainer{
+        h1{
+            font-size: 3rem;
+            color: #ffffff;
+        }
+        
+        .size img{
+            width: 20%;
+        }
+
+        .elementsList{
+            align-self: center;
+            display: flex;
+
+            .buttonList {
+                z-index: 100;
+                position: relative;
+                cursor: pointer;
+                color: #f1f1f1;
+            }
+
+            .listIteration{
+                display: flex;
+                margin: 1rem 0;
+                /* overflow: hidden; */
+
+                .perserveranceElement{
+                    overflow: hidden;
+                    align-items: flex-end;
+                    flex: 1;
+
+                    p{
+                        transform: translateX(150%);
+                        margin-right: .8rem;
+                        color: #ffffff;
+                        opacity: .6;
+                        justify-items: flex-end;
+                        transition: transform .3s ease-in;
+                    }
+                }
+
+                .elementLine{
+                    position: relative;
+                    width: 2px;
+                    top: 0;
+                    bottom: 0;
+                    background-color: #f1f1f1;
+                    opacity: .5;      
+                    transition: transform .1s ease-in;
+                }
+
+                .indexList{
+                    width: 25px;
+                    overflow: hidden;
+
+                    p{
+                        font-size: .8rem;
+                        color: #ffffff;
+                        opacity: .6;
+                        transform:translate(-150%) rotate(90deg);
+                    }
+                }
+            }
+
+            /* LIST DYSPLAYED */
+            .listIteration.display{
+                .perserveranceElement{
+                    p{
+                        transform: translateX(0);
+                    }
+                    p.active-color{
+                        opacity: 1;
+                    }
+                }
+
+                .elementLine{
+                    transform: skew(15deg, 15deg);
+                }
+                .elementLine.active-bg{
+                    background-color: var(--orangeD);
+                    opacity: 1;
+                    transform: skew(0deg, 0deg);
+                }
+                
+                .indexList{
+                    p{
+                        transition: transform .3s ease-in;
+                        transform: translate(0%) rotate(90deg);
+                    }
+                    p.active-color{
+                        opacity: 1;
+                    }
+                }
+
+                &:hover{
+                    cursor: pointer;
+
+                    .perserveranceElement,
+                    .indexList{
+                        p{
+                            opacity: 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        .elementDescription{
+            background: rgba(255, 255, 255, .1);
+            backdrop-filter: blur(5px);
+            color: #ffffff;
+            margin-bottom: 4rem;
+        }
+
+    }
+}       
+
+.point{
+    position:absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 2000;
 }
-    /* ELEMENTS */
-    .button {
-        z-index: 100;
-        position: relative;
-        cursor: pointer;
-        color: #f1f1f1;
-    }
 
-    .elementsList{
-        align-self: center;
-        display: flex;
-    }
+.point.visible .label{
+    transform: scale(1, 1);
+}
 
-    .elementDescription{
-        background: rgba(255, 255, 255, .1);
-        backdrop-filter: blur(5px);
-        color: #ffffff;
-        margin-bottom: 4rem;
-    }
-    .listIteration{
-        display: flex;
-        margin: 1rem 0;
-        overflow: hidden;
-    }
-    .listIteration:hover .perserveranceElement p,
-    .listIteration:hover .display.listIteration .indexList p{
-        opacity: 1;
-    }
+.point:hover .text{
+    opacity: 1;
+}
 
-    .listIteration .perserveranceElement{
-        overflow: hidden;
-        align-items: flex-end;
-        flex: 1;
-    }
-    .listIteration .perserveranceElement p{
-        transform: translateX(150%);
-        margin-right: .8rem;
-        color: #ffffff;
-        opacity: .6;
-        justify-items: flex-end;
-        transition: transform .3s ease-in;
-    }
-    .listIteration .perserveranceElement.display p{
-        cursor: pointer;
-        transform: translateX(0);
-    }
-    .elementLine{
-        width: 2px;
-        position: relative;
-        top: 0;
-        bottom: 0;
-        background-color: #f1f1f1;
-        opacity: .5;
-        transition: transform .3s ease-in;
-    }
+.point .label
+{
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, .6);
+    border: 1px solid rgba(255, 255, 255, .7);
+    color: #ffffff;
+    text-align: center;
+    cursor: help;
+    transform: scale(0, 0);
+    transition: transform .3s;
+}
 
-    .display.listIteration .elementLine{
-        transform: skew(15deg, 15deg);
-    }
-    .listIteration .indexList{
-        width: 25px;
-        overflow: hidden;
-    }
-    .listIteration .indexList p{
-        font-size: .8rem;
-        color: #ffffff;
-        opacity: .6;
-        transform:translate(-150%) rotate(90deg);
-    }
+.point .text
+{
+    position: absolute;
+    top: 30px;
+    left: -120px;
+    padding: 10px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, .6);
+    border: 1px solid rgba(255, 255, 255, .7);
+    color: #ffffff;
+    text-align: center;
+    opacity: 0;
+    transition: opacity .3s;
+    pointer-events: none;
+}
 
-    .display.listIteration .indexList p{
-        transition: transform .3s ease-in;
-        transform: translate(0%) rotate(90deg);
-    }
-
-    /* GENERAL */
-    .active-bg{
-        background-color: var(--orangeD);
-        opacity: 1;
-    }
-
-    .active-color{
-        color: var(--orangeD) !important;
-        opacity: 1;
-    }
-    /* IMG */
-    .htmlContainer .size img{
-        width: 20%;
-    }
 
 </style>

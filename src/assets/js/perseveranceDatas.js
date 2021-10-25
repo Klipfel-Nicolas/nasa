@@ -2,18 +2,168 @@ export  const elementsPerseverance = [
     {
         name:'Navigation Cameras',
         positions: {
-            x:-.35,
-            y:2,
-            z:.9
+            x:.86,
+            y:1.97,
+            z:-.38
         },
         description: "The navigation cameras help the rover drive safely, particularly when operating autonomously. (one each side)"
     },
     {
         name:'WATSON',
         positions: {
-            x:.6,
+            x:.40,
             y:1.9,
-            z:1.8
+            z:-1.9
+        },
+        description: "WATSON is a camera that acts as a magnifying lens to help SHERLOC see fine detail in rocks and soil."
+    },
+    {
+        name:'Wheels',
+        positions: {
+            x:1,
+            y:.25,
+            z:.8
+        },
+        description: "The wheels are made of aluminium, with cleats for traction and curved titanium spokes for springy support."
+    },
+    {
+        name:'Rover "Up-Look" Camera',
+        positions: {
+            x:.03,
+            y:1.33,
+            z:.71
+        },
+        description:"During landing, this camera watches the descent stage as it lowers the rover on the sky crane."
+    },
+    {
+        name:'Suspension',
+        positions: {
+            x:.9,
+            y:.9,
+            z:.2
+        },
+        description: "The ‘rocker-bogie’ suspension system allows the wheels to traverse uneven obstacles."
+    },
+    {
+        name:'Corring Drill',
+        positions: {
+            x:.87,
+            y:1.90,
+            z:-2.05
+        },
+        description: "The drill is a rotary percussive drill to extract sample cores from rocks."
+    },
+    {
+        name:'PIXL',
+        positions: {
+            x:.97,
+            y:1.89,
+            z:-1.73
+        },
+        description: "PIXL measures the chemical makeup of rocks at a very fine scale."
+    },
+    {
+        name:'UHF Antenna',
+        positions: {
+            x:-.10,
+            y:1.64,
+            z:1.19
+        },
+        description: "The Ultra-High Frequency Antenna transmits data to Earth using the Mars orbiters overhead."
+    },
+    {
+        name:'High-Gain Antenna',
+        positions: {
+            x:-.55,
+            y:1.28,
+            z:.13
+        },
+        description: "This antenna transmits and receives data directly to and from Earth."
+    },
+    {
+        name:'Low-Gain Antenna',
+        positions: {
+            x:-.89,
+            y:1.50,
+            z:.56
+        },
+        description: "This antenna primarily receives data from Earth."
+    },
+    {
+        name:'Rear Hazcams',
+        positions: {
+            x: -.98,
+            y:0.77,
+            z:.75
+        }
+    },
+    {
+        name:'Name Chips',
+        positions: {
+            x: -.45,
+            y:1.45,
+            z:.78
+        },
+        description: "Three tiny silicon chips carry 10.9 billion names submitted by the public."
+    },
+    {
+        name:'Front Hazcams',
+        positions: {
+            x: .55,
+            y:0.72,
+            z:-.80
+        },
+        description:"The Hazard Avoidance Cameras aid in driving, can operate autonomously and avoid obstacles."
+    },
+    {
+        name:'Rover "Down-Look" Camera',
+        positions: {
+            x: -.22,
+            y:0.77,
+            z:-.90
+        },
+        description: "This camera watches the ground on the dramatic ride to the surface."
+    },
+    {
+        name:'Power Source',
+        positions: {
+            x:-.62,
+            y:1.15,
+            z:1.08
+        },
+        description: "A Multi-Mission Radioisotope Thermoelectric Generator Provides electrical power to the rover."
+    },
+    {
+        name:'Sample Handling',
+        positions: {
+            x: .42,
+            y:1.13,
+            z:-.68
+        },
+        description: "The system is used to collect and store compelling rock and soil samples."
+    },
+
+]
+
+
+
+//SAVE
+/* export  const elementsPerseverance = [
+    {
+        name:'Navigation Cameras',
+        positions: {
+            x:-.86,
+            y:1.9,
+            z:.38
+        },
+        description: "The navigation cameras help the rover drive safely, particularly when operating autonomously. (one each side)"
+    },
+    {
+        name:'WATSON',
+        positions: {
+            x:.40,
+            y:1.9,
+            z:-1.9
         },
         description: "WATSON is a camera that acts as a magnifying lens to help SHERLOC see fine detail in rocks and soil."
     },
@@ -143,4 +293,4 @@ export  const elementsPerseverance = [
         description: "The system is used to collect and store compelling rock and soil samples."
     },
 
-]
+] */
