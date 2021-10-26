@@ -12,11 +12,21 @@
                 
             </div>
 
+            <!-- Description -->
+            <div class="elementDescription" :class="currentElement ? 'display' : ''">
+                <div v-if="currentElement">
+                    <img :src="currentElement.image" class="mainImg"/>
+                    <div class="infos">
+                        <h3 class="name">{{currentElement.name}}</h3>
+                        <p class="shortDescription">{{currentElement.description}}</p>
+                        <button @click="toggleOpen">more about</button>
+                    </div>
+                        <div class="longDescription">{{currentElement.more}}</div>
+                </div>
+            </div>
 
+            <!-- Image left corner -->
             <div class="size">
-                <p v-if="currentElement" class="elementDescription">
-                    {{currentElement.description}}
-                </p>
                 <img src="/images/perseverance.png" alt="rover perseverance">
             </div>
             
@@ -76,7 +86,7 @@
                             ON/OFF
                         </div>
 
-                        <ul>
+                        <ul class="elementsRover">
                             <li 
                                 v-for="(element, index) in elements"
                                 :key="index"
@@ -119,13 +129,19 @@
             
         </div>
 
-        <ul class='list'>
+        <ul class='elementsRover'>
             <li
                 v-for="(point, index) in elements" :key="index"
-                class='point visible'
+                class='point'
+                :class="currentElement && currentElement.name === point.name ? 'active' : '' "
                 :id="'point-'+index"
             >
-                <div class="label">{{index + 1}}</div>
+                <div 
+                    class="label"
+                    @click="onListClick(point)"
+                >
+                    {{index + 1}}
+                </div>
                 <div class="text">{{point.name}}</div>
             </li>
         </ul>
@@ -250,34 +266,10 @@ export default {
 
                      if( child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial){
                         child.castShadow = true
-                        child.receiveShadow = true
+                        /* child.receiveShadow = true */
                     } 
         
                 })
-                
-                   
-                //Elements number 
-                /* for (let i = 0; i < elementsPerseverance.length; i++) {
-                    let element = document.createElement('div');
-                    element.className = `perserveranceElement threeElement `;
-                    
-                    let number = document.createElement('div');
-                    number.className = 'elementNumber';
-                    number.textContent = i+1;
-
-                    let name = document.createElement('div');
-                    name.className = 'elementName';
-                    name.textContent = elementsPerseverance[i].name;
-
-                    element.appendChild(number);
-                    element.appendChild(name);
-                    const marker = new CSS2DObject(element);
-                    marker.position.x = elementsPerseverance[i].positions.x;
-                    marker.position.y = elementsPerseverance[i].positions.y;
-                    marker.position.z = elementsPerseverance[i].positions.z;
-                    this.spirit.add(marker);
-
-                } */
 
                 updateAllMaterials()
             })
@@ -442,14 +434,10 @@ export default {
         },
 
         toggleDysplay(){
-            document.querySelectorAll('.perserveranceElement').forEach(element => {
-                element.classList.toggle('display');
-
-            });
-            document.querySelectorAll('.listIteration').forEach(element => {
-                element.classList.toggle('display');
-
-            });
+            document.querySelectorAll('.elementsRover').forEach(list => {
+                list.classList.toggle('visible');
+            })
+            
 
             this.currentElement = null;
         },
@@ -461,6 +449,10 @@ export default {
                this.currentElement = element; 
             }
         },
+
+        toggleOpen(){
+            document.querySelector('.longDescription').classList.toggle('show');
+        }
     },
 
     mounted() {
@@ -490,7 +482,6 @@ export default {
         }
 
         .elementsList{
-            align-self: center;
             display: flex;
 
             .buttonList {
@@ -500,51 +491,56 @@ export default {
                 color: #f1f1f1;
             }
 
-            .listIteration{
-                display: flex;
-                margin: 1rem 0;
-                /* overflow: hidden; */
+            .elementsRover{
 
-                .perserveranceElement{
-                    overflow: hidden;
-                    align-items: flex-end;
-                    flex: 1;
-
-                    p{
-                        transform: translateX(150%);
-                        margin-right: .8rem;
-                        color: #ffffff;
-                        opacity: .6;
-                        justify-items: flex-end;
-                        transition: transform .3s ease-in;
-                    }
-                }
-
-                .elementLine{
+                .listIteration{
+                    display: flex;
+                    margin: 1rem 0;
                     position: relative;
-                    width: 2px;
-                    top: 0;
-                    bottom: 0;
-                    background-color: #f1f1f1;
-                    opacity: .5;      
-                    transition: transform .1s ease-in;
-                }
-
-                .indexList{
-                    width: 25px;
-                    overflow: hidden;
-
-                    p{
-                        font-size: .8rem;
-                        color: #ffffff;
-                        opacity: .6;
-                        transform:translate(-150%) rotate(90deg);
+                    z-index: 100;
+    
+                    .perserveranceElement{
+                        overflow: hidden;
+                        align-items: flex-end;
+                        flex: 1;
+    
+                        p{
+                            transform: translateX(150%);
+                            margin-right: .8rem;
+                            color: #ffffff;
+                            opacity: .6;
+                            justify-items: flex-end;
+                            transition: transform .3s ease-in;
+                            text-align: end;
+                        }
+                    }
+    
+                    .elementLine{
+                        position: relative;
+                        width: 2px;
+                        top: 0;
+                        bottom: 0;
+                        background-color: #f1f1f1;
+                        opacity: .5;      
+                        transition: transform .1s ease-in;
+                    }
+    
+                    .indexList{
+                        width: 25px;
+                        overflow: hidden;
+    
+                        p{
+                            font-size: .8rem;
+                            color: #ffffff;
+                            opacity: .6;
+                            transform:translate(-150%) rotate(90deg);
+                        }
                     }
                 }
             }
 
             /* LIST DYSPLAYED */
-            .listIteration.display{
+            .elementsRover.visible .listIteration{
                 .perserveranceElement{
                     p{
                         transform: translateX(0);
@@ -587,61 +583,118 @@ export default {
         }
 
         .elementDescription{
-            background: rgba(255, 255, 255, .1);
-            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            width: 40%;
+            transform: translateX(-200%);
+            height: 70vh;
             color: #ffffff;
             margin-bottom: 4rem;
+            transform-origin: left;
+            transition: transform .3s ease-in-out;
+            position: relative;
+            z-index: 200;
+
+            .mainImg{
+                width: 50%;
+            }
+            .infos{
+                background: rgba(255, 255, 255, .1);
+                backdrop-filter: blur(5px);
+                padding: 0 1rem;
+                text-align: start;
+                position: relative;
+                
+                h3{
+                    font-size: 20px;
+                    font-family: var(--orbiton-font);
+                    padding: 2rem 0;
+                    
+                }
+                .shortDescription{
+                    
+                }
+            }
+                .longDescription{
+                    background: rgba(255, 255, 255, .1);
+                    backdrop-filter: blur(5px);
+                    transform: scaleY(0);
+                    transform-origin: top;
+                    opacity: 0;
+                    transition: all .3s ease-in;
+                }
+
+                .longDescription.show{
+                    opacity: 1;
+                    transform: scaleY(1);
+                    position: relative;
+                    
+                }
+        }
+        .elementDescription.display{
+            transform: translateX(0);
         }
 
     }
 }       
 
+//Points interest Rover
 .point{
     position:absolute;
     top: 50%;
     left: 50%;
     z-index: 2000;
+
+    &:hover{
+        .text{
+            opacity: 1;
+        }
+    }
+    
+    .label{
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        line-height: 30px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, .6);
+        border: 1px solid rgba(255, 255, 255, .7);
+        color: #ffffff;
+        text-align: center;
+        cursor: help;
+        transform: scale(0, 0);
+        transition: transform .3s;
+    }
+
+    .text{
+        position: absolute;
+        top: 30px;
+        left: -120px;
+        padding: 10px;
+        border-radius: 4px;
+        background: rgba(0, 0, 0, .6);
+        border: 1px solid rgba(255, 255, 255, .7);
+        color: #ffffff;
+        text-align: center;
+        opacity: 0;
+        transition: opacity .3s;
+        pointer-events: none;
+    }
 }
 
-.point.visible .label{
+.visible .point .label{
     transform: scale(1, 1);
 }
 
-.point:hover .text{
-    opacity: 1;
+.point.active{
+    .label{
+        color: var(--orangeD);
+        border-color: var(--orangeD);
+    }
+    .text{
+        opacity:1;
+    }
 }
-
-.point .label
-{
-    position: absolute;
-    width: 30px;
-    height: 30px;
-    line-height: 30px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, .6);
-    border: 1px solid rgba(255, 255, 255, .7);
-    color: #ffffff;
-    text-align: center;
-    cursor: help;
-    transform: scale(0, 0);
-    transition: transform .3s;
-}
-
-.point .text
-{
-    position: absolute;
-    top: 30px;
-    left: -120px;
-    padding: 10px;
-    border-radius: 4px;
-    background: rgba(0, 0, 0, .6);
-    border: 1px solid rgba(255, 255, 255, .7);
-    color: #ffffff;
-    text-align: center;
-    opacity: 0;
-    transition: opacity .3s;
-    pointer-events: none;
-}
-
 
 </style>

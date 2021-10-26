@@ -6,7 +6,9 @@ export  const elementsPerseverance = [
             y:1.97,
             z:-.38
         },
-        description: "The navigation cameras help the rover drive safely, particularly when operating autonomously. (one each side)"
+        description: "The navigation cameras help the rover drive safely, particularly when operating autonomously. (one each side)",
+        image: "/images/navCam.png",
+        more: "Two color stereo Navigation Cameras, called Navcams, help engineers navigate Perseverance safely, particularly when the rover operates autonomously, making its own navigation decisions without consulting controllers on Earth.Located up high on the rover's mast, these two cameras help engineers drive the rover around Mars. They can see an object as small as a golf ball from 82 feet (25 meters) away. Before Perseverance \"drives blind,” the navigation cameras initially help ensure a safe path. Blind-drive mode occurs when engineers command the rover to drive a certain distance in a certain direction, and the rover's computer \"brains\" calculate distance from wheel rotations without looking or checking for wheel slippage."
     },
     {
         name:'WATSON',
@@ -95,7 +97,8 @@ export  const elementsPerseverance = [
             x: -.98,
             y:0.77,
             z:.75
-        }
+        },
+        description: "The Rear Hazard Avoidance Cameras aid in driving, can operate autonomously and avoid obstacles.",
     },
     {
         name:'Name Chips',

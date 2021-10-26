@@ -98,42 +98,4 @@ a{
 }
 
 
-/* PERSEVERANCE PAGE (ELEMEMENT THREE)*/
-
-.perserveranceElement{
-  display: flex;
-  z-index: 100;
-  position: relative;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  opacity: 0;
-  transition: opacity .3s ease-in;
-}
-
-.perserveranceElement.display{
-  opacity: 1;
-}
-
-.perserveranceElement:hover .elementName{
-  opacity: 1;
-}
-
-.elementNumber{
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(255, 255, 255, .8);
-  background: rgba(0, 0, 0, .8);
-  color: rgba(255, 255, 255, .8);
-  width:20px;
-  height: 20px;
-  border-radius: 100%;
-  cursor: pointer;
-}
-
-.elementName{
-  opacity: 0;
-  color: rgb(246, 141, 67);
-}
 </style>
