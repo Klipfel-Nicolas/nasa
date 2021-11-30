@@ -12,22 +12,29 @@
                 
             </div>
 
-            <!-- Description -->
-            <div class="elementDescription" :class="currentElement ? 'display' : ''">
-                <div v-if="currentElement">
-                    <img :src="currentElement.image" class="mainImg"/>
-                    <div class="infos">
-                        <h3 class="name">{{currentElement.name}}</h3>
-                        <p class="shortDescription">{{currentElement.description}}</p>
-                        <button @click="toggleOpen">more about</button>
+            <!-- Left Column -->
+            <div class="left-column">
+                <!-- Description -->
+                <div class="elementDescription" :class="currentElement ? 'display' : ''">
+                    <div v-if="currentElement" >          
+                        <div class="infos">
+                            <div class="title">
+                                <h3 class="name">{{currentElement.name}}</h3> 
+                                <button @click="toggleOpen">more about</button>
+                            </div>
+                            
+                            <p class="shortDescription">{{currentElement.description}}</p>
+                            
+                            <p v-html="currentElement.more" class="longDescription backgoundOpaq"></p>
+                        </div>
                     </div>
-                        <div class="longDescription">{{currentElement.more}}</div>
                 </div>
-            </div>
 
-            <!-- Image left corner -->
-            <div class="size">
-                <img src="/images/perseverance.png" alt="rover perseverance">
+
+                <!-- Image left corner -->
+                <div class="imageLeft">
+                    <img src="/images/perseverance.png" alt="rover perseverance">
+                </div>
             </div>
             
             <!-- right Column -->
@@ -155,7 +162,7 @@ import Navigation from '../components/Navigation.vue';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { CSS2DRenderer/* , CSS2DObject */ } from 'three/examples/jsm/renderers/CSS2DRenderer'
+import { CSS2DRenderer/* , CSS2DObject */} from 'three/examples/jsm/renderers/CSS2DRenderer'
 import { elementsPerseverance } from '../assets/js/perseveranceDatas'
 /* import { gsap } from "gsap"; */
 import * as dat from 'dat.gui';
@@ -200,8 +207,6 @@ export default {
              * Loaders
              */
             const gltfLoader = new GLTFLoader();
-           /* const loadingManager = new THREE.LoadingManager()
-             const texturesLoader = new THREE.TextureLoader(loadingManager)*/
 
             /**
              * Base
@@ -248,81 +253,84 @@ export default {
              /**
              * Models
              */
-            gltfLoader.setPath( './3DObjects/mars-perseverance-rover/source/' ).load( 'Perseverance.glb', (object) => {
+            gltfLoader.setPath( './3DObjects/finalRover/' ).load( 'rover.glb', (object) => {
                 
                 this.spirit = object.scene
                 this.scene.add( this.spirit );
                 
-                this.spirit.rotation.y = Math.PI / 1.2
-
                 //Debug model
                 const modelFolder = gui.addFolder('Model');
                 modelFolder.add(this.spirit.position, 'x', -3, 3, .3).name('x')
                 modelFolder.add(this.spirit.position, 'z', -5, 5, .03).name('z')
                 modelFolder.add(this.spirit.position, 'y', -5, 5, .03).name('z')
                 modelFolder.add(this.spirit.rotation, 'y', -3, 3, .03).name('rotation-y')
-       
-                this.spirit.traverse(child =>{
 
-                     if( child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial){
-                        child.castShadow = true
-                        /* child.receiveShadow = true */
-                    } 
-        
-                })
+                //Materials Update (wheel suspension)
+                 this.spirit.traverse(child =>{
+                    
+                    if(child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial && child.name.includes('E-HORIZONTAL_SWINGARM') ){
+                        child.material.roughness = 0;
+                        child.material.metalness = .8;
+                    }
+                }) 
+                
+                this.spirit.rotation.y = Math.PI / 1.2;
+                this.spirit.matrixAutoUpdate = false //perf
+                this.spirit.updateMatrix()
 
                 updateAllMaterials()
             })
 
+
+            /* for (let i = 0; i < elementsPerseverance.length; i++) {
+                    let element = document.createElement('div');
+                    element.className = 'roverPoint';
+                    
+                    let number = document.createElement('div');
+                    number.className = 'elementNumber label';
+                    number.textContent = i+1;
+
+                    let name = document.createElement('div');
+                    name.className = 'elementName text';
+                    name.textContent = elementsPerseverance[i].name;
+
+                    element.appendChild(number);
+                    element.appendChild(name);
+                    const marker = new CSS2DObject(element);
+                    marker.position.x = elementsPerseverance[i].positions.x;
+                    marker.position.y = elementsPerseverance[i].positions.y;
+                    marker.position.z = elementsPerseverance[i].positions.z;
+                    this.scene.add(marker);
+
+            } */
+            
             /**
-             * Points
+             * Points (PERFORMANCE)
              */
-            for (let i = 0; i < elementsPerseverance.length; i++) {
+            /**/ for (let i = 0; i < elementsPerseverance.length; i++) {
                 this.points.push({
                     position: new THREE.Vector3(elementsPerseverance[i].positions.x, elementsPerseverance[i].positions.y, elementsPerseverance[i].positions.z),
                     element: document.querySelector(`#point-${i}`),
                 })  
             }
+ 
+
             
-            
-            /**
-             * Floor
-             */
-            const floor = new THREE.Mesh(
-                new THREE.PlaneGeometry(30, 30),
-                new THREE.MeshStandardMaterial({
-                    color: '#060606',
-                    metalness: 0.9,
-                    roughness: 1,
-                })
-            )
-            floor.receiveShadow = true
-            floor.castShadow = false
-            floor.rotation.x = - Math.PI * 0.5
-            this.scene.add(floor)
+
 
             /**
              * Light
              */
-
             // AmbientLight
-            const ambientLight = new THREE.AmbientLight(0xf1f1f1, .4)
+            const ambientLight = new THREE.AmbientLight(0xf1f1f1, .2)
             this.scene.add(ambientLight)
 
             const lightFolder = gui.addFolder('Light');
             lightFolder.add(ambientLight, 'intensity').min(0).max(5).step(0.001).name('Ambient-Intensity')
 
             //Directionnal Light
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 3.1)
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 2.3)
             directionalLight.position.set(2.5, 2.5, 0)
-            directionalLight.castShadow = true
-            directionalLight.shadow.mapSize.set(1024 * 2, 1024 * 2 )
-            directionalLight.shadow.camera.far = 5
-            directionalLight.shadow.camera.left = - 2.5
-            directionalLight.shadow.camera.top = 2
-            directionalLight.shadow.camera.right = 2.5
-            directionalLight.shadow.camera.bottom = - 2
-            directionalLight.shadow.normalBias = .02
             this.scene.add(directionalLight)
             
             /*Helper
@@ -335,7 +343,7 @@ export default {
             lightFolder.add(directionalLight.position, 'y').min(- 5).max(5).step(0.001).name('direction-Y')
             lightFolder.add(directionalLight.position, 'z').min(- 5).max(5).step(0.001).name('direction-Z')
             */
-    
+
             /**
              * RENDERER
              */
@@ -349,13 +357,7 @@ export default {
             this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             this.renderer.outputEncoding = THREE.sRGBEncoding
             this.renderer.toneMapping = THREE.ACESFilmicToneMapping
-            this.renderer.toneMappingExposure = 3
-            this.renderer.shadowMap.enabled = true
-            this.renderer.shadowMap.type = THREE.PCFShadowMap
-            this.renderer.shadowMap.needsUpdate = true
-           
-            
-            
+            this.renderer.toneMappingExposure = 2.3
 
             this.css2Renderer = new CSS2DRenderer();
             this.css2Renderer.setSize( sizes.width, sizes.height);
@@ -419,15 +421,15 @@ export default {
             this.css2Renderer.render( this.scene, this.camera );
 
     
-
-            this.points.forEach(point => {
+            //Points (PERFORMANCE)
+            /**/ this.points.forEach(point => {
                 const screenPosition = point.position.clone()
                
                 screenPosition.project(this.camera)
                 const translateX = screenPosition.x * window.innerWidth * .5;
                 const translateY = screenPosition.y * window.innerHeight * .5;
                 point.element.style.transform = `translate(${translateX}px, ${-translateY}px)`
-            })
+            })  
             
         this.stats.end();    
             
@@ -451,7 +453,7 @@ export default {
         },
 
         toggleOpen(){
-            document.querySelector('.longDescription').classList.toggle('show');
+            document.querySelector('.elementDescription').classList.toggle('show');
         }
     },
 
@@ -472,6 +474,9 @@ export default {
     background: #000000;  
 
     .htmlContainer{
+        max-height: 100vh;
+        max-width: 100vw;
+        overflow: hidden;
         h1{
             font-size: 3rem;
             color: #ffffff;
@@ -483,6 +488,7 @@ export default {
 
         .elementsList{
             display: flex;
+            text-align: center;
 
             .buttonList {
                 z-index: 100;
@@ -582,58 +588,118 @@ export default {
             }
         }
 
-        .elementDescription{
+        .left-column {
+            position: absolute;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
-            width: 40%;
-            transform: translateX(-200%);
-            height: 70vh;
-            color: #ffffff;
-            margin-bottom: 4rem;
-            transform-origin: left;
-            transition: transform .3s ease-in-out;
-            position: relative;
-            z-index: 200;
+            height: 100vh;
+            width: 30%;
+            left: 5%;
+            bottom: 0%;
+            padding: 10px;
 
-            .mainImg{
-                width: 50%;
-            }
-            .infos{
+            .elementDescription{
+                color: #ffffff;
+                overflow: hidden;
+                transform: translateX(-200%);
+                transform-origin: left;
+                transition: transform .3s ease-in-out;
                 background: rgba(255, 255, 255, .1);
                 backdrop-filter: blur(5px);
-                padding: 0 1rem;
-                text-align: start;
-                position: relative;
+                padding: 2rem;
+                z-index: 200;
                 
-                h3{
-                    font-size: 20px;
-                    font-family: var(--orbiton-font);
-                    padding: 2rem 0;
-                    
-                }
-                .shortDescription{
-                    
-                }
-            }
-                .longDescription{
-                    background: rgba(255, 255, 255, .1);
-                    backdrop-filter: blur(5px);
-                    transform: scaleY(0);
-                    transform-origin: top;
-                    opacity: 0;
-                    transition: all .3s ease-in;
+                //TITLE
+                .title{
+                    display: flex;
+                    justify-content: space-between;
+
+                     h3{
+                        position: relative;
+                        font-size: 20px;
+                        font-family: var(--orbiton-font);
+                        padding-bottom: .8rem;
+
+                        &::before{
+                            content: '';
+                            position: absolute;
+                            bottom: 0;
+                            left: 0;
+                            width: 100%;
+                            height: 3px;
+                            background: var(--orangeD);
+                            transform: scaleX(0);
+                            transform-origin: right;
+                            transition: transform .3s ease-in;
+                        }
+
+                        &::after{
+                            content: '';
+                            position: absolute;
+                            bottom: 0;
+                            left: 0;
+                            width: 100%;
+                            height: 3px;
+                            background: #ffffff;
+                            transform: scaleX(0);
+                            transform-origin: left;
+                            transition: transform .3s ease-in ;
+                        }
+                    }
                 }
 
-                .longDescription.show{
-                    opacity: 1;
-                    transform: scaleY(1);
-                    position: relative;
-                    
+                .shortDescription{
+                    padding: 2rem 0;
                 }
-        }
-        .elementDescription.display{
-            transform: translateX(0);
+
+                .longDescription{
+                    line-height: 1.7rem;
+                    height: 0;
+                    transform-origin: top;
+                    opacity: 0;
+                    transform: translateX(-50%) ;
+                }
+            }
+
+            .elementDescription.display{
+                transform: translateX(0);
+
+                .title{
+                    h3{
+                        &::before{
+                            transform:scaleX(1);
+                        }
+                    }
+                }
+            }
+
+            .elementDescription.display.show {
+
+                .title{
+                    h3{
+                        &::before{
+                            transform:scaleX(0);
+                        }
+
+                        &::after{
+                            transform:scaleX(1);
+                        }
+                    }
+                }
+
+                 .longDescription{
+                    height: auto;
+                    opacity: 1;
+                    transform: translateX(0);
+                    transition: all .2s ease-in;
+                 }
+            }
+
+            //Image Rover
+            .imageLeft{
+                width: 30%;
+            }
         }
 
     }
@@ -696,5 +762,6 @@ export default {
         opacity:1;
     }
 }
+
 
 </style>
