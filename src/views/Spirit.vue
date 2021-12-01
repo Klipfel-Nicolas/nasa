@@ -87,7 +87,7 @@
                 <div class="elementsList">
                     <div>
                         <div
-                            @click="toggleDysplay"
+                            @click="toggleDysplay(), wireframe()"
                             class="buttonList"
                         >
                             ON/OFF
@@ -186,6 +186,7 @@ export default {
             elements: elementsPerseverance,
             currentElement: null,
             photos: null,
+            wireframeBool: false,
             camera: null,
             scene: null,
             controls: null,
@@ -196,6 +197,8 @@ export default {
             stats: new Stats(),
             raycaster: new THREE.Raycaster(),
             points: [],
+            testMaterial: null,
+            wireframeSpirit: null,
         }
     },
 
@@ -244,8 +247,7 @@ export default {
                 this.scene.traverse((child) =>{
                     if(child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial){                  
                         child.material.envMapIntensity = debugObject.envMapIntensity
-                        child.material.needsUpdate = true
-                        
+                        child.material.needsUpdate = true      
                     }
                 })
             }
@@ -253,9 +255,11 @@ export default {
              /**
              * Models
              */
-            gltfLoader.setPath( './3DObjects/finalRover/' ).load( 'rover.glb', (object) => {
+            gltfLoader.setPath( './3DObjects/finalRover/' ).load( 'roverNamed.glb', (object) => {
                 
                 this.spirit = object.scene
+                this.wireframeSpirit = object.scene
+                
                 this.scene.add( this.spirit );
                 
                 //Debug model
@@ -265,8 +269,21 @@ export default {
                 modelFolder.add(this.spirit.position, 'y', -5, 5, .03).name('z')
                 modelFolder.add(this.spirit.rotation, 'y', -3, 3, .03).name('rotation-y')
 
+                //const wireframeMaterial = new THREE.MeshBasicMaterial({color: 0xf1f1f1, wireframe: true});
                 //Materials Update (wheel suspension)
                  this.spirit.traverse(child =>{
+
+                    if(child.name.includes("10272Wheels_356-101_E-HORIZONTAL_SWINGARM_25223001")){
+                        console.log(child)
+                        this.testMaterial = child.material;
+                    }
+                     
+                    
+                    if(!child.name.includes('Floor') && /* !child.name.includes('E-HORIZONTAL_SWINGARM') && */ child.material instanceof THREE.MeshStandardMaterial){
+                        /*child.material = wireframeMaterial*/
+                        child.material.wireframe = false;
+ 
+                    }
                     
                     if(child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial && child.name.includes('E-HORIZONTAL_SWINGARM') ){
                         child.material.roughness = 0;
@@ -281,31 +298,8 @@ export default {
                 updateAllMaterials()
             })
 
-
-            /* for (let i = 0; i < elementsPerseverance.length; i++) {
-                    let element = document.createElement('div');
-                    element.className = 'roverPoint';
-                    
-                    let number = document.createElement('div');
-                    number.className = 'elementNumber label';
-                    number.textContent = i+1;
-
-                    let name = document.createElement('div');
-                    name.className = 'elementName text';
-                    name.textContent = elementsPerseverance[i].name;
-
-                    element.appendChild(number);
-                    element.appendChild(name);
-                    const marker = new CSS2DObject(element);
-                    marker.position.x = elementsPerseverance[i].positions.x;
-                    marker.position.y = elementsPerseverance[i].positions.y;
-                    marker.position.z = elementsPerseverance[i].positions.z;
-                    this.scene.add(marker);
-
-            } */
-            
             /**
-             * Points (PERFORMANCE)
+             * Points
              */
             /**/ for (let i = 0; i < elementsPerseverance.length; i++) {
                 this.points.push({
@@ -313,11 +307,8 @@ export default {
                     element: document.querySelector(`#point-${i}`),
                 })  
             }
- 
 
             
-
-
             /**
              * Light
              */
@@ -329,20 +320,10 @@ export default {
             lightFolder.add(ambientLight, 'intensity').min(0).max(5).step(0.001).name('Ambient-Intensity')
 
             //Directionnal Light
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 2.3)
+            /**/ const directionalLight = new THREE.DirectionalLight(0xffffff, 2.3)
             directionalLight.position.set(2.5, 2.5, 0)
-            this.scene.add(directionalLight)
-            
-            /*Helper
-            const cameraHelper = new THREE.CameraHelper(directionalLight.shadow.camera);
-            this.scene.add(cameraHelper);
-            const helper = new THREE.DirectionalLightHelper( directionalLight);
-            this.scene.add(helper)
-            lightFolder.add(directionalLight, 'intensity').min(0).max(5).step(0.001).name('direction-intensity')
-            lightFolder.add(directionalLight.position, 'x').min(- 5).max(5).step(0.001).name('direction-X')
-            lightFolder.add(directionalLight.position, 'y').min(- 5).max(5).step(0.001).name('direction-Y')
-            lightFolder.add(directionalLight.position, 'z').min(- 5).max(5).step(0.001).name('direction-Z')
-            */
+            this.scene.add(directionalLight) 
+
 
             /**
              * RENDERER
@@ -440,7 +421,7 @@ export default {
                 list.classList.toggle('visible');
             })
             
-
+            this.wireframeBool = !this.wireframeBool;
             this.currentElement = null;
         },
 
@@ -453,18 +434,58 @@ export default {
         },
 
         toggleOpen(){
-            document.querySelector('.elementDescription').classList.toggle('show');
+           document.querySelector('.elementDescription').classList.toggle('show');
+        },
+
+        wireframe(){
+            this.scene.remove(this.spirit)
+            this.wireframeSpirit.traverse(child =>{
+                if(!child.name.includes('Floor') && /* !child.name.includes('E-HORIZONTAL_SWINGARM') && */ child.material instanceof THREE.MeshStandardMaterial){
+                        child.material.wireframe = true;
+ 
+                }
+                    
+            })
+            this.scene.add(this.wireframeSpirit)
+            /**const wireframeMaterial = new THREE.MeshBasicMaterial({color: 0xf1f1f1, wireframe: true});/ 
+            /* const normalMaterials = new THREE.MeshStandardMaterial() */
+            
+            /* if(this.wireframeBool){
+                this.spirit.traverse(child =>{
+                    
+                    if(!child.name.includes('Floor') && !child.name.includes('E-HORIZONTAL_SWINGARM')){
+                        child.material = wireframeMaterial;
+                    } 
+                }) 
+            }else { 
+
+                 this.spirit.traverse(child =>{
+                    if(!child.name.includes('Floor')){
+                        child.material = this.testMaterial;
+                    } 
+                }) 
+                
+            } */
+            /*this.spirit.traverse(child =>{
+                if(!child.name.includes('Floor') && !child.name.includes('Sample_Handling') && child.material instanceof THREE.MeshStandardMaterial){
+                        console.log(child.name, child.material)
+                        
+                        child.material.wireframe = true;
+ 
+                }
+                 if(child.name.includes('HORIZONTAL_SWINGARM')){
+                console.log(child);
+                child.material.wireframe = false;
+                } 
+            })*/
         }
+        
     },
 
     mounted() {
         this.init();
         this.animate();
     },
-
-    created() {
-        
-    }
 }
 </script>
 
