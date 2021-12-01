@@ -20,7 +20,7 @@
                         <div class="infos">
                             <div class="title">
                                 <h3 class="name">{{currentElement.name}}</h3> 
-                                <button @click="toggleOpen">more about</button>
+                                <button @click="toggleDesctionOpen">more about</button>
                             </div>
                             
                             <p class="shortDescription">{{currentElement.description}}</p>
@@ -87,7 +87,7 @@
                 <div class="elementsList">
                     <div>
                         <div
-                            @click="toggleDysplay(), wireframe()"
+                            @click="toggleListDysplay(), toggleWireframeMode()"
                             class="buttonList"
                         >
                             ON/OFF
@@ -186,7 +186,7 @@ export default {
             elements: elementsPerseverance,
             currentElement: null,
             photos: null,
-            wireframeBool: false,
+            
             camera: null,
             scene: null,
             controls: null,
@@ -198,6 +198,7 @@ export default {
             raycaster: new THREE.Raycaster(),
             points: [],
             testMaterial: null,
+            wireframeBool: false,
             wireframeSpirit: null,
         }
     },
@@ -258,7 +259,7 @@ export default {
             gltfLoader.setPath( './3DObjects/finalRover/' ).load( 'roverNamed.glb', (object) => {
                 
                 this.spirit = object.scene
-                this.wireframeSpirit = object.scene
+                
                 
                 this.scene.add( this.spirit );
                 
@@ -273,17 +274,17 @@ export default {
                 //Materials Update (wheel suspension)
                  this.spirit.traverse(child =>{
 
-                    if(child.name.includes("10272Wheels_356-101_E-HORIZONTAL_SWINGARM_25223001")){
+                    /* if(child.name.includes("10272Wheels_356-101_E-HORIZONTAL_SWINGARM_25223001")){
                         console.log(child)
                         this.testMaterial = child.material;
                     }
-                     
+                      */
                     
-                    if(!child.name.includes('Floor') && /* !child.name.includes('E-HORIZONTAL_SWINGARM') && */ child.material instanceof THREE.MeshStandardMaterial){
-                        /*child.material = wireframeMaterial*/
+                    /*if(!child.name.includes('Floor') &&  !child.name.includes('E-HORIZONTAL_SWINGARM') &&  child.material instanceof THREE.MeshStandardMaterial){
+                        child.material = wireframeMaterial
                         child.material.wireframe = false;
  
-                    }
+                    }*/
                     
                     if(child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial && child.name.includes('E-HORIZONTAL_SWINGARM') ){
                         child.material.roughness = 0;
@@ -298,6 +299,23 @@ export default {
                 updateAllMaterials()
             })
 
+
+
+             gltfLoader.setPath( './3DObjects/finalRover/' ).load( 'roverNamed.glb', (object) => {
+                 this.wireframeSpirit = object.scene
+
+                 const wireframeMaterial = new THREE.MeshBasicMaterial({color: 0xf1f1f1, wireframe: true});
+
+                 this.wireframeSpirit.traverse(child =>{
+                    if(!child.name.includes('Floor') && child.material instanceof THREE.MeshStandardMaterial){
+                            child.material = wireframeMaterial;
+                    }  
+                })
+
+                this.wireframeSpirit.rotation.y = Math.PI / 1.2;
+                this.wireframeSpirit.matrixAutoUpdate = false //perf
+                this.wireframeSpirit.updateMatrix()
+             })
             /**
              * Points
              */
@@ -416,7 +434,7 @@ export default {
             
         },
 
-        toggleDysplay(){
+        toggleListDysplay(){
             document.querySelectorAll('.elementsRover').forEach(list => {
                 list.classList.toggle('visible');
             })
@@ -433,21 +451,25 @@ export default {
             }
         },
 
-        toggleOpen(){
+        toggleDesctionOpen(){
            document.querySelector('.elementDescription').classList.toggle('show');
         },
 
-        wireframe(){
-            this.scene.remove(this.spirit)
-            this.wireframeSpirit.traverse(child =>{
-                if(!child.name.includes('Floor') && /* !child.name.includes('E-HORIZONTAL_SWINGARM') && */ child.material instanceof THREE.MeshStandardMaterial){
-                        child.material.wireframe = true;
- 
-                }
-                    
-            })
-            this.scene.add(this.wireframeSpirit)
-            /**const wireframeMaterial = new THREE.MeshBasicMaterial({color: 0xf1f1f1, wireframe: true});/ 
+        toggleWireframeMode(){
+            this.wireframeBool != this.wireframeBool;
+            
+            if(this.wireframeBool == true){
+                this.scene.remove(this.spirit);
+                this.scene.add(this.wireframeSpirit)
+            }else if(this.wireframeBool == false){
+                this.scene.remove(this.wireframeSpirit);
+                this.scene.add(this.spirit);
+            }
+            
+            
+            
+            
+            
             /* const normalMaterials = new THREE.MeshStandardMaterial() */
             
             /* if(this.wireframeBool){
