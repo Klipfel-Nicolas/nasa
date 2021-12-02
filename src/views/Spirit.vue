@@ -200,6 +200,7 @@ export default {
             testMaterial: null,
             wireframeBool: false,
             wireframeSpirit: null,
+            wireframeElement: null,
         }
     },
 
@@ -290,6 +291,10 @@ export default {
                         child.material.roughness = 0;
                         child.material.metalness = .8;
                     }
+                    //TEST
+                    if(child.name.includes('suspension')){
+                        console.log('spirit', child)
+                    }
                 }) 
                 
                 this.spirit.rotation.y = Math.PI / 1.2;
@@ -309,7 +314,7 @@ export default {
                  this.wireframeSpirit.traverse(child =>{
                     if(!child.name.includes('Floor') && child.material instanceof THREE.MeshStandardMaterial){
                             child.material = wireframeMaterial;
-                    }  
+                    } 
                 })
 
                 this.wireframeSpirit.rotation.y = Math.PI / 1.2;
@@ -443,11 +448,17 @@ export default {
             this.currentElement = null;
         },
 
-        onListClick(element){
+        onListClick(element){   
+            
             if(this.currentElement && element.name === this.currentElement.name){
+                this.removeMaterials(this.currentElement.name)
                 this.currentElement = null;
             }else{
-               this.currentElement = element; 
+                if(this.currentElement){
+                  this.removeMaterials(this.currentElement.name)  
+                }
+                this.currentElement = element;
+                this.displayMaterials(element.name)
             }
         },
 
@@ -455,53 +466,34 @@ export default {
            document.querySelector('.elementDescription').classList.toggle('show');
         },
 
-        toggleWireframeMode(){
+        toggleWireframeMode(){          
             this.wireframeBool != this.wireframeBool;
             
             if(this.wireframeBool == true){
                 this.scene.remove(this.spirit);
+                /* this.wireframeSpirit.children.splice(39,1,this.spirit.children[40]) */
                 this.scene.add(this.wireframeSpirit)
             }else if(this.wireframeBool == false){
                 this.scene.remove(this.wireframeSpirit);
                 this.scene.add(this.spirit);
             }
-            
-            
-            
-            
-            
-            /* const normalMaterials = new THREE.MeshStandardMaterial() */
-            
-            /* if(this.wireframeBool){
-                this.spirit.traverse(child =>{
-                    
-                    if(!child.name.includes('Floor') && !child.name.includes('E-HORIZONTAL_SWINGARM')){
-                        child.material = wireframeMaterial;
-                    } 
-                }) 
-            }else { 
+        },
 
-                 this.spirit.traverse(child =>{
-                    if(!child.name.includes('Floor')){
-                        child.material = this.testMaterial;
-                    } 
-                }) 
-                
-            } */
-            /*this.spirit.traverse(child =>{
-                if(!child.name.includes('Floor') && !child.name.includes('Sample_Handling') && child.material instanceof THREE.MeshStandardMaterial){
-                        console.log(child.name, child.material)
-                        
-                        child.material.wireframe = true;
- 
-                }
-                 if(child.name.includes('HORIZONTAL_SWINGARM')){
-                console.log(child);
-                child.material.wireframe = false;
-                } 
-            })*/
-        }
+        displayMaterials(name){
+            //find the two index of elements to chanhe
+            let spiritIndex = this.spirit.children.findIndex(child => child.name === name.split(' ').join('_'))
+            let wireframeIndex = this.wireframeSpirit.children.findIndex(child => child.name === name.split(' ').join('_'))
+            //Create a copy from element wireframe before remove in array
+            this.wireframeElement = this.wireframeSpirit.children[wireframeIndex]
+            
+            this.wireframeSpirit.children.splice(wireframeIndex,1, this.spirit.children[spiritIndex])
+            
+        },
         
+        removeMaterials(name){
+             let wireframeIndex = this.wireframeSpirit.children.findIndex(child => child.name === name.split(' ').join('_'))
+             this.wireframeSpirit.children.splice(wireframeIndex,1, this.wireframeElement)
+        }
     },
 
     mounted() {
