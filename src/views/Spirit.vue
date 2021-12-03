@@ -192,15 +192,11 @@ export default {
             controls: null,
             renderer: null,
             spirit: null,
-            clock: new THREE.Clock(),
             css2Renderer: null,
             stats: new Stats(),
-            raycaster: new THREE.Raycaster(),
             points: [],
-            testMaterial: null,
             wireframeBool: false,
             wireframeSpirit: null,
-            wireframeElement: null,
             elementSubArray: null,
         }
     },
@@ -275,9 +271,6 @@ export default {
                     if(child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial && child.name.includes('E-HORIZONTAL_SWINGARM') ){
                         child.material.roughness = 0;
                         child.material.metalness = .8;
-                    }
-                    if(child.name === "Corring_Drill"){
-                        console.log(child)
                     }
                 }) 
                 //model positions
@@ -435,12 +428,13 @@ export default {
 
         onListClick(element){   
             if(this.currentElement && element.name === this.currentElement.name){
-                this.findGroup(element.name, this.wireframeSpirit)
-                /* this.removeMaterials(this.currentElement.name) */
+                this.removeMaterials(this.currentElement.name) 
+                this.elementSubArray = null
                 this.currentElement = null;
             }else{
                 if(this.currentElement){
-                  this.removeMaterials(this.currentElement.name)  
+                  this.removeMaterials(this.currentElement.name)
+                  this.elementSubArray = null 
                 }
                 this.currentElement = element;
                 this.displayMaterials(element.name)
@@ -451,7 +445,12 @@ export default {
            document.querySelector('.elementDescription').classList.toggle('show');
         },
 
-        toggleWireframeMode(){          
+        toggleWireframeMode(){ 
+            if(this.elementSubArray){
+                this.removeMaterials(this.elementSubArray.element.name);
+                this.elementSubArray = null
+            }
+
             this.wireframeBool != this.wireframeBool;
             
             if(this.wireframeBool == true){
@@ -467,19 +466,10 @@ export default {
         displayMaterials(name){
             this.findGroup(name, this.spirit)
             this.findGroup(name, this.wireframeSpirit)
-            //find the two index of elements to chanhe
-            /* let spiritIndex = this.spirit.children.findIndex(child => child.name === name.split(' ').join('_'))
-            let wireframeIndex = this.wireframeSpirit.children.findIndex(child => child.name === name.split(' ').join('_'))
-            //Create a copy from element wireframe before remove in array
-            this.wireframeElement = this.wireframeSpirit.children[wireframeIndex]
-
-            this.wireframeSpirit.children.splice(wireframeIndex,1, this.spirit.children[spiritIndex]) */
         }, 
         
         removeMaterials(name){
             this.findGroup(name, this.wireframeSpirit)
-             /* let wireframeIndex = this.wireframeSpirit.children.findIndex(child => child.name === name.split(' ').join('_'))
-             this.wireframeSpirit.children.splice(wireframeIndex,1, this.wireframeElement) */
         },
 
         findGroup(name, object, newEl=this.elementSubArray){
@@ -497,7 +487,7 @@ export default {
                     elIndex: object.children.findIndex(child => child.name === name.split(' ').join('_')),
                     element: object.children[nameIndex]
                 }
-                console.log(newEl)
+
                 if(newEl){
                     elementObj.parent.children.splice(elementObj.elIndex, 1, newEl.element)  
                 }
