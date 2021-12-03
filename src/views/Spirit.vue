@@ -201,6 +201,7 @@ export default {
             wireframeBool: false,
             wireframeSpirit: null,
             wireframeElement: null,
+            elementSubArray: null,
         }
     },
 
@@ -257,11 +258,9 @@ export default {
              /**
              * Models
              */
-            gltfLoader.setPath( './3DObjects/finalRover/' ).load( 'roverNamed.glb', (object) => {
-                
+            //Normal model
+            gltfLoader.setPath( './3DObjects/finalRover/' ).load( 'roverNamed.glb', (object) => {            
                 this.spirit = object.scene
-                
-                
                 this.scene.add( this.spirit );
                 
                 //Debug model
@@ -271,32 +270,17 @@ export default {
                 modelFolder.add(this.spirit.position, 'y', -5, 5, .03).name('z')
                 modelFolder.add(this.spirit.rotation, 'y', -3, 3, .03).name('rotation-y')
 
-                //const wireframeMaterial = new THREE.MeshBasicMaterial({color: 0xf1f1f1, wireframe: true});
-                //Materials Update (wheel suspension)
-                 this.spirit.traverse(child =>{
-
-                    /* if(child.name.includes("10272Wheels_356-101_E-HORIZONTAL_SWINGARM_25223001")){
-                        console.log(child)
-                        this.testMaterial = child.material;
-                    }
-                      */
-                    
-                    /*if(!child.name.includes('Floor') &&  !child.name.includes('E-HORIZONTAL_SWINGARM') &&  child.material instanceof THREE.MeshStandardMaterial){
-                        child.material = wireframeMaterial
-                        child.material.wireframe = false;
- 
-                    }*/
-                    
+                //suspension ans wheels
+                this.spirit.traverse(child =>{
                     if(child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial && child.name.includes('E-HORIZONTAL_SWINGARM') ){
                         child.material.roughness = 0;
                         child.material.metalness = .8;
                     }
-                    //TEST
-                    if(child.name.includes('suspension')){
-                        console.log('spirit', child)
+                    if(child.name === "Corring_Drill"){
+                        console.log(child)
                     }
                 }) 
-                
+                //model positions
                 this.spirit.rotation.y = Math.PI / 1.2;
                 this.spirit.matrixAutoUpdate = false //perf
                 this.spirit.updateMatrix()
@@ -305,7 +289,7 @@ export default {
             })
 
 
-
+            //Wireframe model
              gltfLoader.setPath( './3DObjects/finalRover/' ).load( 'roverNamed.glb', (object) => {
                  this.wireframeSpirit = object.scene
 
@@ -314,13 +298,14 @@ export default {
                  this.wireframeSpirit.traverse(child =>{
                     if(!child.name.includes('Floor') && child.material instanceof THREE.MeshStandardMaterial){
                             child.material = wireframeMaterial;
-                    } 
+                    }
                 })
 
                 this.wireframeSpirit.rotation.y = Math.PI / 1.2;
                 this.wireframeSpirit.matrixAutoUpdate = false //perf
                 this.wireframeSpirit.updateMatrix()
              })
+
             /**
              * Points
              */
@@ -449,9 +434,9 @@ export default {
         },
 
         onListClick(element){   
-            
             if(this.currentElement && element.name === this.currentElement.name){
-                this.removeMaterials(this.currentElement.name)
+                this.findGroup(element.name, this.wireframeSpirit)
+                /* this.removeMaterials(this.currentElement.name) */
                 this.currentElement = null;
             }else{
                 if(this.currentElement){
@@ -471,7 +456,7 @@ export default {
             
             if(this.wireframeBool == true){
                 this.scene.remove(this.spirit);
-                /* this.wireframeSpirit.children.splice(39,1,this.spirit.children[40]) */
+
                 this.scene.add(this.wireframeSpirit)
             }else if(this.wireframeBool == false){
                 this.scene.remove(this.wireframeSpirit);
@@ -480,19 +465,46 @@ export default {
         },
 
         displayMaterials(name){
+            this.findGroup(name, this.spirit)
+            this.findGroup(name, this.wireframeSpirit)
             //find the two index of elements to chanhe
-            let spiritIndex = this.spirit.children.findIndex(child => child.name === name.split(' ').join('_'))
+            /* let spiritIndex = this.spirit.children.findIndex(child => child.name === name.split(' ').join('_'))
             let wireframeIndex = this.wireframeSpirit.children.findIndex(child => child.name === name.split(' ').join('_'))
             //Create a copy from element wireframe before remove in array
             this.wireframeElement = this.wireframeSpirit.children[wireframeIndex]
-            
-            this.wireframeSpirit.children.splice(wireframeIndex,1, this.spirit.children[spiritIndex])
-            
-        },
+
+            this.wireframeSpirit.children.splice(wireframeIndex,1, this.spirit.children[spiritIndex]) */
+        }, 
         
         removeMaterials(name){
-             let wireframeIndex = this.wireframeSpirit.children.findIndex(child => child.name === name.split(' ').join('_'))
-             this.wireframeSpirit.children.splice(wireframeIndex,1, this.wireframeElement)
+            this.findGroup(name, this.wireframeSpirit)
+             /* let wireframeIndex = this.wireframeSpirit.children.findIndex(child => child.name === name.split(' ').join('_'))
+             this.wireframeSpirit.children.splice(wireframeIndex,1, this.wireframeElement) */
+        },
+
+        findGroup(name, object, newEl=this.elementSubArray){
+            
+            if(object.children.findIndex(child => child.name === name.split(' ').join('_')) == -1 && object.children.length > 0){
+                object.children.forEach((child)=>{
+                    if(child instanceof THREE.Group){
+                        this.findGroup(name, child)    
+                    }
+                })
+            } else {
+                let nameIndex = object.children.findIndex(child => child.name === name.split(' ').join('_'))
+                let elementObj = {
+                    parent: object,
+                    elIndex: object.children.findIndex(child => child.name === name.split(' ').join('_')),
+                    element: object.children[nameIndex]
+                }
+                console.log(newEl)
+                if(newEl){
+                    elementObj.parent.children.splice(elementObj.elIndex, 1, newEl.element)  
+                }
+                
+                this.elementSubArray = elementObj;
+            }
+            
         }
     },
 

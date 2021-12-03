@@ -1,13 +1,13 @@
 export  const elementsPerseverance = [
     {
-        name:'Navigation Cameras',
+        name:'head',
         positions: {
             x:.86,
             y:1.97,
             z:-.38
         },
-        description: "The navigation cameras help the rover drive safely, particularly when operating autonomously. (one each side)",
-        more: "Two color stereo Navigation Cameras, called Navcams, help engineers navigate Perseverance safely, particularly when the rover operates autonomously, making its own navigation decisions without consulting controllers on Earth.<br>Located up high on the rover's mast, these two cameras help engineers drive the rover around Mars.<br> They can see an object as small as a golf ball from 82 feet (25 meters) away.<br>Before Perseverance \"drives blind,” the navigation cameras initially help ensure a safe path. Blind-drive mode occurs when engineers command the rover to drive a certain distance in a certain direction, and the rover's computer \"brains\" calculate distance from wheel rotations without looking or checking for wheel slippage."
+        description: "The head is composed of NavCams, MastCam-Z and SuperCam",
+        more: "- NavCams : Two color stereo Navigation Cameras help engineers navigate Perseverance safely, particularly when the rover operates autonomously, making its own navigation decisions without consulting controllers on Earth.<br><br>-MastCam-Z : Is the mast-mounted camera system that is equipped with a zoom function. It can zoom in, focus, and take 3D pictures and video at high speed to allow detailed examination of distant objects.<br><br>-SuperCam : This camera examines rocks and soils with a camera, laser and spectrometers to seek organic compounds that could be related to past life on Mars. It can identify the chemical and mineral makeup of targets as small as a pencil point from a distance of more than 20 feet (7 meters)."
     },
     {
         name:'WATSON',
