@@ -235,7 +235,7 @@ export default {
             /* const axesHelper = new THREE.AxesHelper( 5 );
             this.scene.add( axesHelper ); */
             this.stats.showPanel(0);
-            document.body.appendChild( this.stats.dom );
+            canvas.appendChild( this.stats.dom );
             const gui = new dat.GUI()
             const debugObject = {}
 
@@ -302,7 +302,7 @@ export default {
             /**
              * Points
              */
-            /**/ for (let i = 0; i < elementsPerseverance.length; i++) {
+            for (let i = 0; i < elementsPerseverance.length; i++) {
                 this.points.push({
                     position: new THREE.Vector3(elementsPerseverance[i].positions.x, elementsPerseverance[i].positions.y, elementsPerseverance[i].positions.z),
                     element: document.querySelector(`#point-${i}`),
@@ -368,9 +368,14 @@ export default {
              */
             this.controls = new OrbitControls( this.camera, this.css2Renderer.domElement);
             this.controls.enableDamping = true
-            this.controls.zoomSpeed = 2;
+            this.controls.zoomSpeed = 1.5;
+
+            //near / far
             this.controls.minDistance = 3;
             this.controls.maxDistance = 15;
+            // Y axis
+            this.controls.maxPolarAngle = Math.PI / 2.4;
+  
 
             /**
              * Resizes
@@ -427,17 +432,16 @@ export default {
         },
 
         onListClick(element){   
-            if(this.currentElement && element.name === this.currentElement.name){
-                this.removeMaterials(this.currentElement.name) 
-                this.elementSubArray = null
-                this.currentElement = null;
+            
+            if(this.currentElement && element.name === this.currentElement.name){//If we click two times on the same element
+                this.removeMaterials(this.currentElement.name) //toggle between wireframe and normal
+                this.currentElement = null; //List current element
             }else{
                 if(this.currentElement){
-                  this.removeMaterials(this.currentElement.name)
-                  this.elementSubArray = null 
+                  this.removeMaterials(this.currentElement.name)//toggle material before change element
                 }
-                this.currentElement = element;
-                this.displayMaterials(element.name)
+                this.currentElement = element; //new currentElement in list
+                this.displayMaterials(element.name) // Toggle material in the new element
             }
         },
 
@@ -446,16 +450,15 @@ export default {
         },
 
         toggleWireframeMode(){ 
-            if(this.elementSubArray){
+            if(this.elementSubArray){ //If an element is select toggle materials before
                 this.removeMaterials(this.elementSubArray.element.name);
-                this.elementSubArray = null
             }
 
             this.wireframeBool != this.wireframeBool;
             
             if(this.wireframeBool == true){
+                //change normal model with wireframe model
                 this.scene.remove(this.spirit);
-
                 this.scene.add(this.wireframeSpirit)
             }else if(this.wireframeBool == false){
                 this.scene.remove(this.wireframeSpirit);
@@ -470,10 +473,11 @@ export default {
         
         removeMaterials(name){
             this.findGroup(name, this.wireframeSpirit)
+            this.elementSubArray = null
         },
 
         findGroup(name, object, newEl=this.elementSubArray){
-            
+            //If name not in first dimention array, call recursive this function in multiple dimension Array to found element name
             if(object.children.findIndex(child => child.name === name.split(' ').join('_')) == -1 && object.children.length > 0){
                 object.children.forEach((child)=>{
                     if(child instanceof THREE.Group){
@@ -481,17 +485,24 @@ export default {
                     }
                 })
             } else {
+                //If element name take his index in the parentArray
                 let nameIndex = object.children.findIndex(child => child.name === name.split(' ').join('_'))
                 let elementObj = {
                     parent: object,
                     elIndex: object.children.findIndex(child => child.name === name.split(' ').join('_')),
                     element: object.children[nameIndex]
                 }
-
+                
                 if(newEl){
+                    //Replace the object (material) with the old one
                     elementObj.parent.children.splice(elementObj.elIndex, 1, newEl.element)  
                 }
                 
+                /**
+                 * first time it's normal object witch is given in the second call when newEl != null at the wireframe object, 
+                 * then it become the wireframe Object witch is given at the remove call.
+                 * this allows to toggle between wireframe and normal
+                */
                 this.elementSubArray = elementObj;
             }
             
@@ -502,6 +513,13 @@ export default {
         this.init();
         this.animate();
     },
+
+    destroyed() {
+        this.renderer.forceContextLoss()
+        this.renderer.context = null
+        this.renderer.domElement = null
+        this.renderer = null
+    }
 }
 </script>
 
