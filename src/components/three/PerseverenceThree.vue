@@ -72,6 +72,7 @@ export default {
 
     data(){
         return {
+            canvas: null,
             camera: null,
             scene: null,
             controls: null,
@@ -95,7 +96,7 @@ export default {
             /**
              * Base
              */
-            const canvas = document.getElementById('perseveranceContainer');
+            this.canvas = document.getElementById('perseveranceContainer');
 
             // Sizes
             const sizes = {
@@ -113,7 +114,7 @@ export default {
 
             //Stats
             this.stats.showPanel(0);
-            canvas.appendChild( this.stats.dom );
+            this.canvas.appendChild( this.stats.dom );
 
             /**
              * Normal Model
@@ -185,7 +186,7 @@ export default {
                 alpha: true
             });
             this.renderer.physicallyCorrectLights = true
-            canvas.appendChild( this.renderer.domElement );
+            this.canvas.appendChild( this.renderer.domElement );
             this.renderer.setSize( sizes.width, sizes.height);
             this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             this.renderer.outputEncoding = THREE.sRGBEncoding
@@ -196,12 +197,12 @@ export default {
             this.css2Renderer.setSize( sizes.width, sizes.height);
             this.css2Renderer.domElement.style.position = 'absolute';
             this.css2Renderer.domElement.style.top = '0px';
-            canvas.appendChild( this.css2Renderer.domElement);
+            this.canvas.appendChild( this.css2Renderer.domElement);
 
             /**
              * Orbit Controls
              */
-            this.controls = new OrbitControls( this.camera, this.css2Renderer.domElement);
+            this.controls = new OrbitControls( this.camera,this.css2Renderer.domElement); 
             this.controls.enableDamping = true
             this.controls.zoomSpeed = 1.5;
 
@@ -214,22 +215,20 @@ export default {
             /**
              * Resizes
              */
-            window.addEventListener('resize', () =>
-            {
-                // Update sizes
-                sizes.width = window.innerWidth
-                sizes.height = window.innerHeight
+            window.addEventListener('resize', this.onWindowResize )
+        },
+
+        onWindowResize: function(){
 
                 // Update camera
-                this.camera.aspect = sizes.width / sizes.height
+                this.camera.aspect = window.innerWidth / window.innerHeight
                 this.camera.updateProjectionMatrix()
 
                 // Update renderer
-                this.renderer.setSize(sizes.width, sizes.height)
+                this.renderer.setSize(window.innerWidth, window.innerHeight)
                 this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
                 this.css2Renderer.setSize( window.innerWidth, window.innerHeight );
-            })
         },
 
         animate: function(){
@@ -336,17 +335,19 @@ export default {
         this.animate();
     },
 
-    destroyed() {
+    beforeDestroy() {
         this.renderer.forceContextLoss()
         this.renderer.context = null
         this.renderer.domElement = null
         this.renderer = null
+        this.renderer.dispose()
+        this.spirit.dispose()
+        window.removeEventListener("resize", this.onWindowResize)
     }
 }
 </script>
 
 <style lang="scss" scoped>
-
 //Points interest Rover
 .point{
     position:absolute;

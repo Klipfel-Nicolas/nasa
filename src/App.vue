@@ -4,7 +4,17 @@
   </div>
 </template>
 
+<script>
+import './assets/scss/wordRotate.scss';
+
+export default { 
+}
+</script>
+
 <style lang="scss" >
+html{
+    overflow: hidden;
+}
 :root {
     --orbiton-font: 'Orbitron';
     --normal-font: 'Rajdhani';
@@ -25,6 +35,7 @@
     box-sizing: border-box;
     list-style: none;
     font-size: 14px;
+    user-select: none;
 }
 
 a{

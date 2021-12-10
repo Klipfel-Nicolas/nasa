@@ -1,0 +1,54 @@
+.word-container{
+    position: relative;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+    
+.word-container::before {
+    counter-increment: menucounter;
+    content: counters(menucounter, '.', decimal-leading-zero);
+    position: absolute;
+    left: -15px;
+    top: 0;
+    font-size: 10px;
+}
+
+.word-text{
+    pointer-events: none;
+    display: block;
+    line-height: 1; // pour matcher avec la font size mettre 1
+    position: relative;
+    font-size: 2rem;
+}
+
+.word-container > div:nth-child(1) span { //div html
+    will-change: transform;
+    transform-style: preserve-3d;
+    transition: .5s;
+    transition-delay: calc(0.05s * var(--index));
+    transform-origin: bottom;
+    display: inline-block;
+}
+
+.word-container > div:nth-child(2) span { //div crée en Js
+    will-change: transform;
+    transform-style: preserve-3d;
+    transition: .5s;
+    transition-delay: calc(0.05s * var(--index));
+    transform-origin: top;
+    display: inline-block;
+    transform: translate3d(0, 100%, 0) rotateX(-90deg);
+    color: #0A3DA8;
+}
+
+.word-container:hover > div:nth-child(1) span{
+    transform: translate3d(0, -100%, 0) rotateX(-90deg);
+}
+
+.word-container:hover > div:nth-child(2) span{
+    transform: translate3d(0, 0%, 0) rotateX(0deg);
+}
+
+.word-container span{
+    font-size: 1.2rem;
+}

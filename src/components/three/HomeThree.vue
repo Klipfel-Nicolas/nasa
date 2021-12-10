@@ -225,10 +225,12 @@ export default {
     },
 
     destroyed() {
-        this.renderer.forceContextLoss()
+         this.renderer.forceContextLoss()
         this.renderer.context = null
         this.renderer.domElement = null
         this.renderer = null
+        this.renderer.dispose()
+        window.removeEventListener("resize", this.onWindowResize)
     }
 }
 </script>

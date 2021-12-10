@@ -4,12 +4,10 @@
         <div class="htmlContainer index">
             
             <div class="header">
-
                 <div>
                     <h1>Perseverance</h1>
                     <navigation />  
                 </div>
-                
             </div>
 
             <!-- Left Column -->
@@ -46,7 +44,7 @@
             <!-- right Column -->
             <div class="right-column">
                 <div class="linkedLink">
-                    <!-- <a href="https://www.linkedin.com/in/nicolas-klipfel-7871a21b3/">
+                    <a href="https://www.linkedin.com/in/nicolas-klipfel-7871a21b3/">
                         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" version="1.1" width="40" height="40" x="0" y="0" viewBox="0 0 378.845 378.845" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g>
                             <g xmlns="http://www.w3.org/2000/svg">
                                 <path d="M134.979,109.125c0.466,1.445,0.846,2.931,1.13,4.415c0.366,1.916,2.043,3.249,3.924,3.249c0.25,0,0.503-0.023,0.757-0.072   c2.17-0.415,3.592-2.511,3.177-4.681c-0.346-1.805-0.808-3.61-1.374-5.366c-0.677-2.102-2.928-3.259-5.034-2.579   C135.455,104.769,134.3,107.023,134.979,109.125z" fill="#ffffff" data-original="#000000" style="" class=""/>
@@ -87,7 +85,7 @@
                             </g>
                         </svg>
                         <p class="astroname">Nico</p>
-                    </a> -->
+                    </a>
                 </div>
                 
                 <div class="elementsList">
@@ -216,7 +214,7 @@ export default({
 
 <style lang="scss" scoped>
     #perseverance{
-        background: #000000;  
+        background: #000000;
     
         .htmlContainer{
             
