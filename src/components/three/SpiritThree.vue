@@ -14,6 +14,14 @@ import Stats from 'stats.js';
 export default {
      name: 'SpiritThree',
 
+     props: {
+         material: {
+             type: String,
+             required: true,
+             default: 'wireframe'
+         }
+     },
+
      data(){
         return {
             canvas: null,
@@ -24,6 +32,27 @@ export default {
             spirit: null,
             stats: new Stats(),
             wireframeSpirit: null,
+            wireframeMaterial: new THREE.MeshStandardMaterial({
+                    wireframe: true,
+                    flatShading: false,
+                    color: 0xf1f1f1,
+                    metalness: .5,
+                    roughness: .9
+            }),
+            solidMaterial: new THREE.MeshStandardMaterial({
+                    color: 0xE6F3F3,
+                    /* emissive:0xE6F3F3,
+                    emissiveIntensity:.2, */
+                    metalness: .8,
+                    roughness: 0
+            }),
+            otherMaterial:  new THREE.MeshStandardMaterial({
+                    wireframe: true,
+                    flatShading: true,
+                    color: 0xf1f1f1,
+                    metalness: .5,
+                    roughness: .9
+            }),
         }
     },
 
@@ -55,7 +84,6 @@ export default {
              */
             gltfLoader.setPath( './3DObjects/spirit/' ).load( 'spirit.glb', (object) => {            
                 this.spirit = object.scene
-                /* this.scene.add( this.spirit ); */
 
                 //model positions
                 this.spirit.rotation.y = Math.PI / 3.5;
@@ -63,27 +91,31 @@ export default {
                 this.spirit.matrixAutoUpdate = false //perf
                 this.spirit.updateMatrix()
 
-            })
+            })     
 
             /**
              * Wireframe Model
              */
             gltfLoader.setPath( './3DObjects/spirit/' ).load( 'spirit.glb', (object) => {
-                 this.wireframeSpirit = object.scene
+                 this.wireframeSpirit = object.scene;
                  this.scene.add( this.wireframeSpirit );
 
-                 /* const wireframeMaterial = new THREE.MeshBasicMaterial({color: 0xf1f1f1, wireframe: true}); */
-                 const wireframeMaterial = new THREE.MeshStandardMaterial({
-                    wireframe: true,
-                    flatShading: true,
-                    color: 0xf1f1f1,
-                    metalness: .5,
-                    roughness: .9
-                })
-
                  this.wireframeSpirit.traverse(child =>{
-                    if(!child.name.includes('Floor') && child.material instanceof THREE.MeshStandardMaterial){
-                            child.material = wireframeMaterial;
+                    if(child.material instanceof THREE.MeshStandardMaterial){
+                        switch (this.material) {
+                            case "wireframe":
+                                child.material = this.wireframeMaterial;
+                                break;
+                            case "solid":
+                                child.material = this.solidMaterial;
+                                break;
+                            case "other":
+                                child.material = this.otherMaterial;
+                                break;
+                            default:
+                                child.material = this.wireframeMaterial;
+                                break;
+                        } 
                     }
                 })
 
@@ -101,10 +133,14 @@ export default {
             this.scene.add(ambientLight)
 
             //Directionnal Light
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 1)
-            directionalLight.position.set(-1, 6, -7.5)
+            const directionalLight1 = new THREE.DirectionalLight(0xffffff, 6)
+            directionalLight1.position.set(0, 2, 4)
+            const directionalLight2 = new THREE.DirectionalLight(0xffffff, 2)
+            directionalLight2.position.set(0, 2, -4)
+            const directionalLight3 = new THREE.DirectionalLight(0xffffff, 2)
+            directionalLight3.position.set(0, -4, 0)
 
-            this.scene.add(directionalLight)
+            this.scene.add(directionalLight1, directionalLight2, directionalLight3)
 
             /**
              * RENDERER
@@ -158,14 +194,47 @@ export default {
             requestAnimationFrame( this.animate );
             this.controls.update()
             this.renderer.render( this.scene, this.camera );
-            
+         
             this.stats.end();    
         },
+        changeMaterials(){
+            if(this.material !== "solid"){    
+                 if(!this.wireframeSpirit.parent){
+                     this.scene.remove(this.spirit);
+                     this.scene.add(this.wireframeSpirit);
+                 }  
+                 this.wireframeSpirit.traverse(child =>{
+                    if(child.material instanceof THREE.MeshStandardMaterial){
+                        switch (this.material) {
+                            case "wireframe":
+                                child.material = this.wireframeMaterial;
+                                break;
+                            case "other":
+                                child.material = this.otherMaterial;
+                                break;
+                            default:
+                                child.material = this.wireframeMaterial;
+                                break;
+                        }       
+                    }
+                })
+             } else {
+                 this.scene.remove(this.wireframeSpirit);
+                 this.scene.add(this.spirit);
+             }
+        }
+    },
+
+    watch: {
+         material() {
+             this.changeMaterials()
+         }
     },
 
     mounted() {
         this.init();
         this.animate();
+        
     },
 }
 </script>

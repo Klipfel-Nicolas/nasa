@@ -58,7 +58,6 @@ export default {
 <style lang="css" scoped>
     
     #nav {
-        padding: 30px;
         position: relative;
         z-index: 100;
         
