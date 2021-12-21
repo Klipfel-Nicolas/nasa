@@ -36,16 +36,10 @@ export default {
                     wireframe: true,
                     flatShading: false,
                     color: 0xf1f1f1,
-                    metalness: .5,
+                    metalness: .1,
                     roughness: .9
             }),
-            solidMaterial: new THREE.MeshStandardMaterial({
-                    color: 0xE6F3F3,
-                    /* emissive:0xE6F3F3,
-                    emissiveIntensity:.2, */
-                    metalness: .8,
-                    roughness: 0
-            }),
+            
             otherMaterial:  new THREE.MeshStandardMaterial({
                     wireframe: true,
                     flatShading: true,
@@ -246,5 +240,6 @@ export default {
     margin: 0 auto;
     position: relative;
     z-index: 2;
+    cursor: grab;
 }
 </style>
