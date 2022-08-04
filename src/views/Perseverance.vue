@@ -50,7 +50,7 @@ export default({
 
             /**
              * Light
-             */
+             */ 
             const ambientLight = new THREE.AmbientLight(0xffffff, .4) 
             this.scene.add(ambientLight)
             
@@ -63,10 +63,10 @@ export default({
             
             const directionalLight = new THREE.DirectionalLight(0xf1f1f1, 6)
             directionalLight.position.set(1, .2, 0)
-       
 
 
             this.scene.add( pointLight, hemisphereLight, directionalLight)
+       
 
             // Debug light
             const lightFolder = gui.addFolder('Light');
@@ -79,7 +79,7 @@ export default({
             directionLightFolder.add(directionalLight, 'intensity', 0, 10, .01);
             directionLightFolder.add(directionalLight.position, 'x', -10, 10, .01);
             directionLightFolder.add(directionalLight.position, 'y', -10, 10, .01);
-            directionLightFolder.add(directionalLight.position, 'z', -10, 10, .01); 
+            directionLightFolder.add(directionalLight.position, 'z', -10, 10, .01);
             
             /**
              * Camera
